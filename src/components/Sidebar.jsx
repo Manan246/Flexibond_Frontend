@@ -3,33 +3,34 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { FiHome, FiUploadCloud, FiUsers, FiLogOut } from 'react-icons/fi';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
 
   const handleLogout = () => {
     localStorage.removeItem('flexibond_token');
     localStorage.removeItem('flexibond_user');
+    if (onClose) onClose();
     navigate('/login');
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <h2>Flexibond</h2>
         <p>Analytics</p>
       </div>
 
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <NavLink to="/dashboard" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <FiHome className="nav-icon" />
           <span>Dashboard</span>
         </NavLink>
-        <NavLink to="/salesperson" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <NavLink to="/salesperson" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <FiUsers className="nav-icon" />
           <span>Salesperson</span>
         </NavLink>
-        <NavLink to="/upload" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+        <NavLink to="/upload" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <FiUploadCloud className="nav-icon" />
           <span>Data Upload</span>
         </NavLink>

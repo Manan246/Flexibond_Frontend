@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [filters, setFilters] = useState({
     startDate: '', endDate: '', salesperson: '', category: '', state: ''
   });
+  const [trendGroupBy, setTrendGroupBy] = useState('day');
   const [filterOptions, setFilterOptions] = useState({});
   const [data, setData] = useState({
     summary: null,
@@ -37,7 +38,7 @@ const Dashboard = () => {
         customersRes, catRes, geoRes, filtersRes
       ] = await Promise.all([
         getDashboardSummary(filters),
-        getRevenueTrend({ ...filters, groupBy: 'month' }),
+        getRevenueTrend({ ...filters, groupBy: trendGroupBy }),
         getTopProducts({ ...filters, limit: 10 }),
         getTopCustomers({ ...filters, limit: 5 }),
         getCategoryBreakdown(),
@@ -63,7 +64,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [filters, trendGroupBy]);
 
   const handleFilterChange = (newFilters, clear = false) => {
     if (clear) {
@@ -178,7 +179,46 @@ const Dashboard = () => {
       )}
 
       <div className="charts-grid">
-        <ChartCard title="Revenue Trend" fullWidth>
+        <ChartCard 
+          title="Revenue Trend" 
+          fullWidth 
+          extra={
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                onClick={() => setTrendGroupBy('day')} 
+                className={`toggle-btn ${trendGroupBy === 'day' ? 'active' : ''}`}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.85rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: trendGroupBy === 'day' ? 'var(--primary-600)' : 'var(--bg-card)',
+                  color: trendGroupBy === 'day' ? '#fff' : 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Days
+              </button>
+              <button 
+                onClick={() => setTrendGroupBy('month')} 
+                className={`toggle-btn ${trendGroupBy === 'month' ? 'active' : ''}`}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.85rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: trendGroupBy === 'month' ? 'var(--primary-600)' : 'var(--bg-card)',
+                  color: trendGroupBy === 'month' ? '#fff' : 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Months
+              </button>
+            </div>
+          }
+        >
           <Line data={trendChartData} options={{ maintainAspectRatio: false }} />
         </ChartCard>
         

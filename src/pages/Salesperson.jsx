@@ -54,9 +54,9 @@ const Salesperson = () => {
         <p>Analyze performance, top customers, and product focus across the sales team.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px' }}>
+      <div className="salesperson-layout">
         {/* Left Sidebar - List */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 140px)' }}>
+        <div className="salesperson-list-container">
           <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-light)' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Leaderboard</h3>
           </div>
@@ -96,13 +96,13 @@ const Salesperson = () => {
         </div>
 
         {/* Right Content - Details */}
-        <div style={{ overflowY: 'auto', height: 'calc(100vh - 140px)', paddingRight: '10px' }}>
+        <div className="salesperson-details-container">
           {detailsLoading ? (
              <div className="loading-container" style={{ minHeight: '400px' }}><div className="spinner"></div></div>
           ) : details ? (
             <>
               {/* Top Stats */}
-              <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+              <div className="kpi-grid">
                 <div className="kpi-card">
                   <div className="kpi-label">Total Revenue</div>
                   <div className="kpi-value">{formatCurrency(details.stats.totalRevenue)}</div>

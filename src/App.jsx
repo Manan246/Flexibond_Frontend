@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FiMenu } from 'react-icons/fi';
 
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
@@ -12,14 +13,27 @@ import Salesperson from './pages/Salesperson';
 // Auth Guard component
 const PrivateRoute = () => {
   const token = localStorage.getItem('flexibond_token');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   return (
-    <div className="app-layout">
-      <Sidebar />
+    <div className={`app-layout ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <header className="mobile-header">
+        <button className="menu-toggle" onClick={toggleSidebar}>
+          <FiMenu />
+        </button>
+        <div className="mobile-logo">Flexibond</div>
+      </header>
+
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
+      {isSidebarOpen && <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}></div>}
+
       <main className="main-content">
         <Outlet />
       </main>
