@@ -11,6 +11,8 @@ import {
   getTopCustomers,
   getCategoryBreakdown,
   getGeographic,
+  getColourAnalysis,
+  getSizeAnalysis,
   getFilters
 } from '../services/api';
 
@@ -27,7 +29,10 @@ const Dashboard = () => {
     products: null,
     customers: null,
     categories: null,
-    geo: null
+    geo: null,
+    colours: null,
+    thickness: null,
+    dimensions: null
   });
 
   const fetchData = async () => {
@@ -35,7 +40,7 @@ const Dashboard = () => {
       setLoading(true);
       const [
         summaryRes, trendRes, productsRes, 
-        customersRes, catRes, geoRes, filtersRes
+        customersRes, catRes, geoRes, colourRes, sizeRes, filtersRes
       ] = await Promise.all([
         getDashboardSummary(filters),
         getRevenueTrend({ ...filters, groupBy: trendGroupBy }),
@@ -43,6 +48,8 @@ const Dashboard = () => {
         getTopCustomers({ ...filters, limit: 5 }),
         getCategoryBreakdown(),
         getGeographic({ ...filters, groupBy: 'state' }),
+        getColourAnalysis({ ...filters, limit: 10 }),
+        getSizeAnalysis(filters),
         getFilters()
       ]);
 
@@ -52,7 +59,10 @@ const Dashboard = () => {
         products: productsRes.data.data,
         customers: customersRes.data.data,
         categories: catRes.data.data,
-        geo: geoRes.data.data
+        geo: geoRes.data.data,
+        colours: colourRes.data.data,
+        thickness: sizeRes.data.data.thickness,
+        dimensions: sizeRes.data.data.dimensions
       });
       setFilterOptions(filtersRes.data.data);
     } catch (error) {
@@ -119,6 +129,36 @@ const Dashboard = () => {
         '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'
       ],
       borderWidth: 0
+    }]
+  };
+
+  const coloursChartData = {
+    labels: data.colours?.map(d => d._id) || [],
+    datasets: [{
+      label: 'Revenue',
+      data: data.colours?.map(d => d.totalAmount) || [],
+      backgroundColor: '#10b981',
+      borderRadius: 4
+    }]
+  };
+
+  const thicknessChartData = {
+    labels: data.thickness?.map(d => d.label) || [],
+    datasets: [{
+      label: 'Revenue',
+      data: data.thickness?.map(d => d.totalAmount) || [],
+      backgroundColor: '#8b5cf6',
+      borderRadius: 4
+    }]
+  };
+
+  const dimensionsChartData = {
+    labels: data.dimensions?.map(d => d.label) || [],
+    datasets: [{
+      label: 'Revenue',
+      data: data.dimensions?.map(d => d.totalAmount) || [],
+      backgroundColor: '#ec4899',
+      borderRadius: 4
     }]
   };
 
@@ -240,6 +280,38 @@ const Dashboard = () => {
               maintainAspectRatio: false,
               cutout: '70%',
               plugins: { legend: { position: 'right' } }
+            }} 
+          />
+        </ChartCard>
+
+        <ChartCard title="Colour Breakdown">
+          <Bar 
+            data={coloursChartData} 
+            options={{ 
+              maintainAspectRatio: false,
+              indexAxis: 'y', // Horizontal
+              plugins: { legend: { display: false } }
+            }} 
+          />
+        </ChartCard>
+
+        <ChartCard title="Thickness Preference">
+          <Bar 
+            data={thicknessChartData} 
+            options={{ 
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } }
+            }} 
+          />
+        </ChartCard>
+
+        <ChartCard title="Dimensions Preference (Feet)">
+          <Bar 
+            data={dimensionsChartData} 
+            options={{ 
+              maintainAspectRatio: false,
+              indexAxis: 'y', // Horizontal
+              plugins: { legend: { display: false } }
             }} 
           />
         </ChartCard>

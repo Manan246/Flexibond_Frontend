@@ -54,6 +54,7 @@ export const getTopCustomers = (params) => api.get('/dashboard/top-customers', {
 export const getCategoryBreakdown = () => api.get('/dashboard/category-breakdown');
 export const getGeographic = (params) => api.get('/dashboard/geographic', { params });
 export const getColourAnalysis = (params) => api.get('/dashboard/colour-analysis', { params });
+export const getSizeAnalysis = (params) => api.get('/dashboard/size-analysis', { params });
 export const getFilters = () => api.get('/dashboard/filters');
 
 // Salesperson
