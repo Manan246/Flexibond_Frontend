@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [filters, setFilters] = useState({
     startDate: '', endDate: '', salesperson: '', category: '', state: ''
   });
+  const [metric, setMetric] = useState('revenue');
   const [trendGroupBy, setTrendGroupBy] = useState('day');
   const [filterOptions, setFilterOptions] = useState({});
   const [data, setData] = useState({
@@ -44,12 +45,12 @@ const Dashboard = () => {
       ] = await Promise.all([
         getDashboardSummary(filters),
         getRevenueTrend({ ...filters, groupBy: trendGroupBy }),
-        getTopProducts({ ...filters, limit: 10 }),
-        getTopCustomers({ ...filters, limit: 5 }),
-        getCategoryBreakdown(),
-        getGeographic({ ...filters, groupBy: 'state' }),
-        getColourAnalysis({ ...filters, limit: 10 }),
-        getSizeAnalysis(filters),
+        getTopProducts({ ...filters, limit: 10, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
+        getTopCustomers({ ...filters, limit: 5, sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
+        getCategoryBreakdown({ ...filters, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
+        getGeographic({ ...filters, groupBy: 'state', sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
+        getColourAnalysis({ ...filters, limit: 10, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
+        getSizeAnalysis({ ...filters, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
         getFilters()
       ]);
 
@@ -74,7 +75,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [filters, trendGroupBy]);
+  }, [filters, trendGroupBy, metric]);
 
   const handleFilterChange = (newFilters, clear = false) => {
     if (clear) {
@@ -100,8 +101,8 @@ const Dashboard = () => {
   const trendChartData = {
     labels: data.trend?.map(d => d._id) || [],
     datasets: [{
-      label: 'Revenue',
-      data: data.trend?.map(d => d.revenue) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.trend?.map(d => metric === 'revenue' ? d.revenue : d.qty) || [],
       borderColor: 'var(--primary-500)',
       backgroundColor: 'rgba(37, 99, 235, 0.1)',
       borderWidth: 2,
@@ -113,8 +114,8 @@ const Dashboard = () => {
   const productsChartData = {
     labels: data.products?.map(d => d._id) || [],
     datasets: [{
-      label: 'Revenue',
-      data: data.products?.map(d => d.totalAmount) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.products?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
       backgroundColor: 'var(--primary-400)',
       borderRadius: 4
     }]
@@ -123,7 +124,8 @@ const Dashboard = () => {
   const catChartData = {
     labels: data.categories?.map(d => d._id) || [],
     datasets: [{
-      data: data.categories?.map(d => d.totalAmount) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.categories?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
       backgroundColor: [
         '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe',
         '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'
@@ -135,8 +137,8 @@ const Dashboard = () => {
   const coloursChartData = {
     labels: data.colours?.map(d => d._id) || [],
     datasets: [{
-      label: 'Revenue',
-      data: data.colours?.map(d => d.totalAmount) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.colours?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
       backgroundColor: '#10b981',
       borderRadius: 4
     }]
@@ -145,8 +147,8 @@ const Dashboard = () => {
   const thicknessChartData = {
     labels: data.thickness?.map(d => d.label) || [],
     datasets: [{
-      label: 'Revenue',
-      data: data.thickness?.map(d => d.totalAmount) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.thickness?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
       backgroundColor: '#8b5cf6',
       borderRadius: 4
     }]
@@ -155,8 +157,8 @@ const Dashboard = () => {
   const dimensionsChartData = {
     labels: data.dimensions?.map(d => d.label) || [],
     datasets: [{
-      label: 'Revenue',
-      data: data.dimensions?.map(d => d.totalAmount) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.dimensions?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
       backgroundColor: '#ec4899',
       borderRadius: 4
     }]
@@ -165,8 +167,8 @@ const Dashboard = () => {
   const geoChartData = {
     labels: data.geo?.map(d => d._id) || [],
     datasets: [{
-      label: 'Revenue',
-      data: data.geo?.map(d => d.totalRevenue) || [],
+      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      data: data.geo?.map(d => metric === 'revenue' ? d.totalRevenue : d.totalQty) || [],
       backgroundColor: '#f59e0b',
       borderRadius: 4
     }]
@@ -174,9 +176,23 @@ const Dashboard = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <h1>Dashboard Overview</h1>
-        <p>Key performance indicators and revenue analytics for Flexibond</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1>Dashboard Overview</h1>
+          <p>Key performance indicators and revenue analytics for Flexibond</p>
+        </div>
+        <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <button 
+            onClick={() => setMetric('revenue')} 
+            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+            Revenue
+          </button>
+          <button 
+            onClick={() => setMetric('qty')} 
+            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+            Quantity
+          </button>
+        </div>
       </div>
 
       <FilterBar filters={filters} options={filterOptions} onFilterChange={handleFilterChange} />
@@ -220,7 +236,7 @@ const Dashboard = () => {
 
       <div className="charts-grid">
         <ChartCard 
-          title="Revenue Trend" 
+          title={`${metric === 'revenue' ? 'Revenue' : 'Quantity'} Trend`} 
           fullWidth 
           extra={
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -262,7 +278,7 @@ const Dashboard = () => {
           <Line data={trendChartData} options={{ maintainAspectRatio: false }} />
         </ChartCard>
         
-        <ChartCard title="Top Products (Revenue)">
+        <ChartCard title={`Top Products (${metric === 'revenue' ? 'Revenue' : 'Quantity'})`}>
           <Bar 
             data={productsChartData} 
             options={{ 
@@ -338,7 +354,7 @@ const Dashboard = () => {
           />
         </ChartCard>
 
-        <ChartCard title="Revenue by State">
+        <ChartCard title={`${metric === 'revenue' ? 'Revenue' : 'Quantity'} by State`}>
           <Bar 
             data={geoChartData} 
             options={{ 

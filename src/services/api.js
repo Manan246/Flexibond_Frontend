@@ -51,7 +51,7 @@ export const getDashboardSummary = (params) => api.get('/dashboard/summary', { p
 export const getRevenueTrend = (params) => api.get('/dashboard/revenue-trend', { params });
 export const getTopProducts = (params) => api.get('/dashboard/top-products', { params });
 export const getTopCustomers = (params) => api.get('/dashboard/top-customers', { params });
-export const getCategoryBreakdown = () => api.get('/dashboard/category-breakdown');
+export const getCategoryBreakdown = (params) => api.get('/dashboard/category-breakdown', { params });
 export const getGeographic = (params) => api.get('/dashboard/geographic', { params });
 export const getColourAnalysis = (params) => api.get('/dashboard/colour-analysis', { params });
 export const getSizeAnalysis = (params) => api.get('/dashboard/size-analysis', { params });

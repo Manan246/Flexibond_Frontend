@@ -10,15 +10,16 @@ const Salesperson = () => {
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [metric, setMetric] = useState('revenue');
 
   useEffect(() => {
     fetchList();
-  }, []);
+  }, [metric]);
 
   const fetchList = async () => {
     try {
       setLoading(true);
-      const res = await getSalespersonList();
+      const res = await getSalespersonList({ sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' });
       setList(res.data.data);
       if (res.data.data.length > 0) {
         handleSelectSP(res.data.data[0]._id);
@@ -34,7 +35,7 @@ const Salesperson = () => {
     try {
       setSelectedSP(name);
       setDetailsLoading(true);
-      const res = await getSalespersonPerformance(name);
+      const res = await getSalespersonPerformance(name, { sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' });
       setDetails(res.data.data);
     } catch (err) {
       console.error(err);
@@ -49,9 +50,23 @@ const Salesperson = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <h1>Salesperson Analytics</h1>
-        <p>Analyze performance, top customers, and product focus across the sales team.</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <h1>Salesperson Analytics</h1>
+          <p>Analyze performance, top customers, and product focus across the sales team.</p>
+        </div>
+        <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          <button 
+            onClick={() => setMetric('revenue')} 
+            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+            Revenue
+          </button>
+          <button 
+            onClick={() => setMetric('qty')} 
+            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+            Quantity
+          </button>
+        </div>
       </div>
 
       <div className="salesperson-layout">
@@ -128,8 +143,8 @@ const Salesperson = () => {
                     data={{
                       labels: details.topProducts.map(p => p._id),
                       datasets: [{
-                        label: 'Quantity',
-                        data: details.topProducts.map(p => p.totalQty),
+                        label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+                        data: details.topProducts.map(p => metric === 'revenue' ? p.totalAmount : p.totalQty),
                         backgroundColor: 'var(--primary-500)',
                       }]
                     }}
@@ -157,7 +172,8 @@ const Salesperson = () => {
                     data={{
                       labels: details.cityBreakdown.map(c => c._id),
                       datasets: [{
-                        data: details.cityBreakdown.map(c => c.totalRevenue),
+                        label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+                        data: details.cityBreakdown.map(c => metric === 'revenue' ? c.totalRevenue : c.totalQty),
                         backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
                         borderWidth: 0
                       }]
