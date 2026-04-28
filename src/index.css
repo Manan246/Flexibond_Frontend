@@ -131,12 +131,15 @@ body {
 /* Chart Cards */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
   margin-bottom: 28px;
 }
 .charts-grid.three-col {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.charts-grid > * {
+  min-width: 0;
 }
 
 .chart-card {
@@ -557,12 +560,21 @@ body {
 
 @media (max-width: 992px) {
   .salesperson-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .salesperson-layout > * {
+    min-width: 0;
   }
   .salesperson-list-container,
   .salesperson-details-container {
     height: auto;
     overflow: visible;
+  }
+  .salesperson-details-container {
+    order: 1;
+  }
+  .salesperson-list-container {
+    order: 2;
   }
 }
 
@@ -572,7 +584,7 @@ body {
   display: none;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 16px 16px;
   background: var(--navy-900);
   color: #fff;
   position: fixed;
@@ -597,6 +609,10 @@ body {
   font-weight: 700;
   font-size: 1.2rem;
   color: var(--primary-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 10px;
 }
 
 .sidebar-backdrop {
@@ -612,13 +628,13 @@ body {
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .charts-grid { grid-template-columns: 1fr; }
-  .result-cards { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .result-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
   .mobile-header { display: flex; }
-  .main-content { margin-left: 0; padding: 80px 20px 20px; } /* 80px top padding for mobile header */
+  .main-content { margin-left: 0; padding: 80px 16px 20px; }
   
   .sidebar {
     transform: translateX(-100%);
@@ -630,14 +646,15 @@ body {
     transform: translateX(0);
   }
   
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .salesperson-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .salesperson-grid { grid-template-columns: minmax(0, 1fr); }
+  .page-header h1 { font-size: 1.5rem; }
+  .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+  .filter-bar select, .filter-bar input { width: 100%; min-width: auto; }
 }
 
 @media (max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr; }
-  .result-cards { grid-template-columns: 1fr; }
-  .filter-bar { flex-direction: column; align-items: stretch; }
-  .filter-bar select, .filter-bar input { width: 100%; }
+  .main-content { padding: 80px 12px 20px; }
+  .result-cards { grid-template-columns: minmax(0, 1fr); }
 }
 

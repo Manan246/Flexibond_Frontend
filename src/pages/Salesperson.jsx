@@ -122,7 +122,7 @@ const Salesperson = () => {
               </div>
 
               {/* Charts */}
-              <div className="charts-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <div className="charts-grid">
                 <ChartCard title="Top Products Sold">
                   <Bar 
                     data={{
@@ -133,7 +133,22 @@ const Salesperson = () => {
                         backgroundColor: 'var(--primary-500)',
                       }]
                     }}
-                    options={{ maintainAspectRatio: false, indexAxis: 'y' }}
+                    options={{ 
+                      maintainAspectRatio: false, 
+                      indexAxis: 'y',
+                      plugins: { legend: { display: false } },
+                      scales: {
+                        y: {
+                          ticks: {
+                            callback: function(value) {
+                              const label = this.getLabelForValue(value);
+                              return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
+                            },
+                            font: { size: 10 }
+                          }
+                        }
+                      }
+                    }}
                   />
                 </ChartCard>
 
@@ -147,7 +162,7 @@ const Salesperson = () => {
                         borderWidth: 0
                       }]
                     }}
-                    options={{ maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }}
+                    options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }}
                   />
                 </ChartCard>
               </div>

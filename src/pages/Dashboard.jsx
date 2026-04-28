@@ -267,8 +267,19 @@ const Dashboard = () => {
             data={productsChartData} 
             options={{ 
               maintainAspectRatio: false,
-              indexAxis: 'y', // Horizontal bar chart
-              plugins: { legend: { display: false } }
+              indexAxis: 'y', 
+              plugins: { legend: { display: false } },
+              scales: {
+                y: {
+                  ticks: {
+                    callback: function(value) {
+                      const label = this.getLabelForValue(value);
+                      return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
+                    },
+                    font: { size: 10 }
+                  }
+                }
+              }
             }} 
           />
         </ChartCard>
@@ -279,7 +290,7 @@ const Dashboard = () => {
             options={{ 
               maintainAspectRatio: false,
               cutout: '70%',
-              plugins: { legend: { position: 'right' } }
+              plugins: { legend: { position: 'bottom' } }
             }} 
           />
         </ChartCard>
@@ -310,8 +321,19 @@ const Dashboard = () => {
             data={dimensionsChartData} 
             options={{ 
               maintainAspectRatio: false,
-              indexAxis: 'y', // Horizontal
-              plugins: { legend: { display: false } }
+              indexAxis: 'y', 
+              plugins: { legend: { display: false } },
+              scales: {
+                y: {
+                  ticks: {
+                    callback: function(value) {
+                      const label = this.getLabelForValue(value);
+                      return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
+                    },
+                    font: { size: 10 }
+                  }
+                }
+              }
             }} 
           />
         </ChartCard>
