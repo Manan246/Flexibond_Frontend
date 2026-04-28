@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiHome, FiUploadCloud, FiUsers, FiLogOut } from 'react-icons/fi';
+import { FiHome, FiUploadCloud, FiUsers, FiLogOut, FiBox, FiBarChart2 } from 'react-icons/fi';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -26,9 +26,17 @@ const Sidebar = ({ isOpen, onClose }) => {
           <FiHome className="nav-icon" />
           <span>Dashboard</span>
         </NavLink>
+        <NavLink to="/products" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <FiBox className="nav-icon" />
+          <span>Products</span>
+        </NavLink>
         <NavLink to="/salesperson" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <FiUsers className="nav-icon" />
           <span>Salesperson</span>
+        </NavLink>
+        <NavLink to="/comparison" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <FiBarChart2 className="nav-icon" />
+          <span>Comparison</span>
         </NavLink>
         <NavLink to="/upload" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <FiUploadCloud className="nav-icon" />

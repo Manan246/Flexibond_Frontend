@@ -63,4 +63,7 @@ export const getSalespersonPerformance = (name, params) =>
   api.get(`/salesperson/${encodeURIComponent(name)}/performance`, { params });
 export const getSalespersonComparison = (params) => api.get('/salesperson/compare/all', { params });
 
+// AI Insights
+export const getAIInsights = (context, contextType) => api.post('/ai/insights', { context, contextType });
+
 export default api;

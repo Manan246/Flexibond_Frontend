@@ -4,15 +4,14 @@ import { FiDollarSign, FiShoppingCart, FiUsers, FiPackage, FiTrendingUp } from '
 import KPICard from '../components/KPICard';
 import ChartCard from '../components/ChartCard';
 import FilterBar from '../components/FilterBar';
+import AIInsightButton from '../components/AIInsightButton';
 import {
   getDashboardSummary,
   getRevenueTrend,
   getTopProducts,
   getTopCustomers,
-  getCategoryBreakdown,
   getGeographic,
-  getColourAnalysis,
-  getSizeAnalysis,
+  getSalespersonList,
   getFilters
 } from '../services/api';
 
@@ -29,28 +28,23 @@ const Dashboard = () => {
     trend: null,
     products: null,
     customers: null,
-    categories: null,
     geo: null,
-    colours: null,
-    thickness: null,
-    dimensions: null
+    salespersons: null
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const [
-        summaryRes, trendRes, productsRes, 
-        customersRes, catRes, geoRes, colourRes, sizeRes, filtersRes
+        summaryRes, trendRes, productsRes,
+        customersRes, geoRes, spRes, filtersRes
       ] = await Promise.all([
         getDashboardSummary(filters),
         getRevenueTrend({ ...filters, groupBy: trendGroupBy }),
         getTopProducts({ ...filters, limit: 10, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
-        getTopCustomers({ ...filters, limit: 5, sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
-        getCategoryBreakdown({ ...filters, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
+        getTopCustomers({ ...filters, limit: 20, sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
         getGeographic({ ...filters, groupBy: 'state', sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
-        getColourAnalysis({ ...filters, limit: 10, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
-        getSizeAnalysis({ ...filters, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
+        getSalespersonList({ sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
         getFilters()
       ]);
 
@@ -59,11 +53,8 @@ const Dashboard = () => {
         trend: trendRes.data.data,
         products: productsRes.data.data,
         customers: customersRes.data.data,
-        categories: catRes.data.data,
         geo: geoRes.data.data,
-        colours: colourRes.data.data,
-        thickness: sizeRes.data.data.thickness,
-        dimensions: sizeRes.data.data.dimensions
+        salespersons: spRes.data.data
       });
       setFilterOptions(filtersRes.data.data);
     } catch (error) {
@@ -87,6 +78,7 @@ const Dashboard = () => {
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
   const formatNumber = (val) => new Intl.NumberFormat('en-IN').format(val || 0);
+  const metricLabel = metric === 'revenue' ? 'Revenue' : 'Quantity';
 
   if (loading && !data.summary) {
     return (
@@ -101,7 +93,7 @@ const Dashboard = () => {
   const trendChartData = {
     labels: data.trend?.map(d => d._id) || [],
     datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      label: metricLabel,
       data: data.trend?.map(d => metric === 'revenue' ? d.revenue : d.qty) || [],
       borderColor: 'var(--primary-500)',
       backgroundColor: 'rgba(37, 99, 235, 0.1)',
@@ -114,60 +106,30 @@ const Dashboard = () => {
   const productsChartData = {
     labels: data.products?.map(d => d._id) || [],
     datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      label: metricLabel,
       data: data.products?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
       backgroundColor: 'var(--primary-400)',
       borderRadius: 4
     }]
   };
 
-  const catChartData = {
-    labels: data.categories?.map(d => d._id) || [],
+  // Salesperson donut (replaces category breakdown)
+  const spChartData = {
+    labels: data.salespersons?.slice(0, 8).map(d => d._id) || [],
     datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
-      data: data.categories?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
+      label: metricLabel,
+      data: data.salespersons?.slice(0, 8).map(d => metric === 'revenue' ? d.totalRevenue : d.totalQty) || [],
       backgroundColor: [
-        '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe',
-        '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'
+        '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'
       ],
       borderWidth: 0
-    }]
-  };
-
-  const coloursChartData = {
-    labels: data.colours?.map(d => d._id) || [],
-    datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
-      data: data.colours?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
-      backgroundColor: '#10b981',
-      borderRadius: 4
-    }]
-  };
-
-  const thicknessChartData = {
-    labels: data.thickness?.map(d => d.label) || [],
-    datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
-      data: data.thickness?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
-      backgroundColor: '#8b5cf6',
-      borderRadius: 4
-    }]
-  };
-
-  const dimensionsChartData = {
-    labels: data.dimensions?.map(d => d.label) || [],
-    datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
-      data: data.dimensions?.map(d => metric === 'revenue' ? d.totalAmount : d.totalQty) || [],
-      backgroundColor: '#ec4899',
-      borderRadius: 4
     }]
   };
 
   const geoChartData = {
     labels: data.geo?.map(d => d._id) || [],
     datasets: [{
-      label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+      label: metricLabel,
       data: data.geo?.map(d => metric === 'revenue' ? d.totalRevenue : d.totalQty) || [],
       backgroundColor: '#f59e0b',
       borderRadius: 4
@@ -179,7 +141,7 @@ const Dashboard = () => {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1>Dashboard Overview</h1>
-          <p>Key performance indicators and revenue analytics for Flexibond</p>
+          <p>Key performance indicators and analytics for Flexibond</p>
         </div>
         <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
           <button 
@@ -198,14 +160,23 @@ const Dashboard = () => {
       <FilterBar filters={filters} options={filterOptions} onFilterChange={handleFilterChange} />
 
       {data.summary && (
+        <div style={{ marginBottom: '24px' }}>
+          <AIInsightButton 
+            contextData={data.summary} 
+            contextType="Dashboard Overall KPI Summary" 
+            title="Generate AI Executive Summary" 
+            isBanner={true} 
+          />
+        </div>
+      )}
+
+      {data.summary && (
         <div className="kpi-grid">
           <KPICard
             title="Total Revenue"
             value={formatCurrency(data.summary.totalRevenue)}
             icon={<FiDollarSign />}
             color="blue"
-            trend={12.5}
-            subtext="vs previous period"
           />
           <KPICard
             title="Total Orders"
@@ -236,13 +207,14 @@ const Dashboard = () => {
 
       <div className="charts-grid">
         <ChartCard 
-          title={`${metric === 'revenue' ? 'Revenue' : 'Quantity'} Trend`} 
+          title={`${metricLabel} Trend`} 
+          aiContext={data.trend}
+          aiType="Revenue Trend Data"
           fullWidth 
           extra={
             <div style={{ display: 'flex', gap: '8px' }}>
               <button 
                 onClick={() => setTrendGroupBy('day')} 
-                className={`toggle-btn ${trendGroupBy === 'day' ? 'active' : ''}`}
                 style={{
                   padding: '6px 12px',
                   fontSize: '0.85rem',
@@ -258,7 +230,6 @@ const Dashboard = () => {
               </button>
               <button 
                 onClick={() => setTrendGroupBy('month')} 
-                className={`toggle-btn ${trendGroupBy === 'month' ? 'active' : ''}`}
                 style={{
                   padding: '6px 12px',
                   fontSize: '0.85rem',
@@ -278,7 +249,7 @@ const Dashboard = () => {
           <Line data={trendChartData} options={{ maintainAspectRatio: false }} />
         </ChartCard>
         
-        <ChartCard title={`Top Products (${metric === 'revenue' ? 'Revenue' : 'Quantity'})`}>
+        <ChartCard title={`Top Products (${metricLabel})`} aiContext={data.products} aiType="Top Products Comparison">
           <Bar 
             data={productsChartData} 
             options={{ 
@@ -300,61 +271,18 @@ const Dashboard = () => {
           />
         </ChartCard>
 
-        <ChartCard title="Category Breakdown">
+        <ChartCard title={`Salesperson ${metricLabel}`} aiContext={data.salespersons} aiType="Salesperson Performance">
           <Doughnut 
-            data={catChartData} 
+            data={spChartData} 
             options={{ 
               maintainAspectRatio: false,
               cutout: '70%',
-              plugins: { legend: { position: 'bottom' } }
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
             }} 
           />
         </ChartCard>
 
-        <ChartCard title="Colour Breakdown">
-          <Bar 
-            data={coloursChartData} 
-            options={{ 
-              maintainAspectRatio: false,
-              indexAxis: 'y', // Horizontal
-              plugins: { legend: { display: false } }
-            }} 
-          />
-        </ChartCard>
-
-        <ChartCard title="Thickness Preference">
-          <Bar 
-            data={thicknessChartData} 
-            options={{ 
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } }
-            }} 
-          />
-        </ChartCard>
-
-        <ChartCard title="Dimensions Preference (Feet)">
-          <Bar 
-            data={dimensionsChartData} 
-            options={{ 
-              maintainAspectRatio: false,
-              indexAxis: 'y', 
-              plugins: { legend: { display: false } },
-              scales: {
-                y: {
-                  ticks: {
-                    callback: function(value) {
-                      const label = this.getLabelForValue(value);
-                      return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
-                    },
-                    font: { size: 10 }
-                  }
-                }
-              }
-            }} 
-          />
-        </ChartCard>
-
-        <ChartCard title={`${metric === 'revenue' ? 'Revenue' : 'Quantity'} by State`}>
+        <ChartCard title={`${metricLabel} by State`} aiContext={data.geo} aiType="Geographic Breakdown">
           <Bar 
             data={geoChartData} 
             options={{ 
@@ -364,37 +292,42 @@ const Dashboard = () => {
           />
         </ChartCard>
 
+        {/* Top Customers Table - Scrollable */}
         <div className="data-table-wrapper" style={{ gridColumn: '1 / -1' }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Top Customers</h3>
           </div>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Customer Name</th>
-                <th>City</th>
-                <th>State</th>
-                <th>Salesperson</th>
-                <th>Orders</th>
-                <th>Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.customers?.map((cust, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 500 }}>{cust._id}</td>
-                  <td>{cust.city}</td>
-                  <td>{cust.state}</td>
-                  <td>{cust.salesperson}</td>
-                  <td>{cust.totalOrders}</td>
-                  <td style={{ fontWeight: 600 }}>{formatCurrency(cust.totalRevenue)}</td>
+          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <table className="data-table">
+              <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg-card)' }}>
+                <tr>
+                  <th>Customer Name</th>
+                  <th>City</th>
+                  <th>State</th>
+                  <th>Salesperson</th>
+                  <th>Orders</th>
+                  <th>{metricLabel}</th>
                 </tr>
-              ))}
-              {(!data.customers || data.customers.length === 0) && (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>No customer data available</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.customers?.map((cust, i) => (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 500 }}>{cust._id}</td>
+                    <td>{cust.city}</td>
+                    <td>{cust.state}</td>
+                    <td>{cust.salesperson}</td>
+                    <td>{cust.totalOrders}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      {metric === 'revenue' ? formatCurrency(cust.totalRevenue) : formatNumber(cust.totalQty)}
+                    </td>
+                  </tr>
+                ))}
+                {(!data.customers || data.customers.length === 0) && (
+                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>No customer data available</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

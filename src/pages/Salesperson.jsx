@@ -3,6 +3,7 @@ import { getSalespersonList, getSalespersonPerformance } from '../services/api';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import ChartCard from '../components/ChartCard';
 import { FiUsers, FiDollarSign, FiShoppingCart, FiMapPin } from 'react-icons/fi';
+import AIInsightButton from '../components/AIInsightButton';
 
 const Salesperson = () => {
   const [list, setList] = useState([]);
@@ -117,6 +118,15 @@ const Salesperson = () => {
           ) : details ? (
             <>
               {/* Top Stats */}
+              <div style={{ marginBottom: '24px' }}>
+                <AIInsightButton 
+                  contextData={{ salesperson: selectedSP, stats: details.stats }} 
+                  contextType={`Salesperson ${selectedSP} Performance Overview`} 
+                  title={`Generate AI Insights for ${selectedSP}`} 
+                  isBanner={true} 
+                />
+              </div>
+
               <div className="kpi-grid">
                 <div className="kpi-card">
                   <div className="kpi-label">Total Revenue</div>
@@ -138,7 +148,7 @@ const Salesperson = () => {
 
               {/* Charts */}
               <div className="charts-grid">
-                <ChartCard title="Top Products Sold">
+                <ChartCard title="Top Products Sold" aiContext={details.topProducts} aiType={`Products Sold by ${selectedSP}`}>
                   <Bar 
                     data={{
                       labels: details.topProducts.map(p => p._id),
@@ -167,7 +177,7 @@ const Salesperson = () => {
                   />
                 </ChartCard>
 
-                <ChartCard title="City Breakdown">
+                <ChartCard title="City Breakdown" aiContext={details.cityBreakdown} aiType={`Sales Breakdown by City for ${selectedSP}`}>
                   <Doughnut 
                     data={{
                       labels: details.cityBreakdown.map(c => c._id),

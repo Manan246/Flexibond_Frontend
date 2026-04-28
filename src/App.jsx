@@ -9,6 +9,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import Salesperson from './pages/Salesperson';
+import Products from './pages/Products';
+import Comparison from './pages/Comparison';
 
 // Auth Guard component
 const PrivateRoute = () => {
@@ -51,8 +53,10 @@ const App = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/upload" element={<Upload />} />
+          <Route path="/products" element={<Products />} />
           <Route path="/salesperson" element={<Salesperson />} />
+          <Route path="/comparison" element={<Comparison />} />
+          <Route path="/upload" element={<Upload />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />
