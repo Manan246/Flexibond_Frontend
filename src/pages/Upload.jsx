@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FiUploadCloud, FiFileText, FiCheckCircle, FiXCircle, FiTrash2, FiClock } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { uploadFile, getUploadHistory, deleteUpload } from '../services/api';
+import { uploadFile, getUploadHistory, deleteUpload, purgeAllData } from '../services/api';
 import NotificationPanel from '../components/NotificationPanel';
 
 const Upload = () => {
@@ -44,6 +44,20 @@ const Upload = () => {
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  const handlePurgeAll = async (type, label) => {
+    const confirmed = window.confirm(
+      `⚠️ DANGER: This will permanently delete ALL ${label} records from the database, including any records not tracked in the history below.\n\nThis cannot be undone. Type OK to continue.`
+    );
+    if (!confirmed) return;
+    try {
+      const res = await purgeAllData(type);
+      toast.success(res.data.message);
+      fetchHistory();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Purge failed');
+    }
+  };
 
   const handleDeleteUpload = async (uploadId) => {
     if (!window.confirm('Are you sure you want to delete this upload? ALL associated records will be permanently removed!')) {
@@ -276,9 +290,19 @@ const Upload = () => {
       )}
       {/* Upload History & Rollback UI */}
       <div className="chart-card" style={{ padding: '24px', marginTop: '40px' }}>
-        <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-600)' }}>
-          <FiClock /> Upload & Rollback History
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-600)' }}>
+            <FiClock /> Upload & Rollback History
+          </h3>
+          {isAdmin && (
+            <button
+              onClick={() => handlePurgeAll('invoices', 'Invoice & Invoice Item')}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--danger)', background: 'var(--danger-bg)', color: 'var(--danger)', cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+            >
+              <FiTrash2 size={14} /> Purge All Invoice Data
+            </button>
+          )}
+        </div>
         
         {loadingHistory ? (
           <p style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>Loading history trace...</p>

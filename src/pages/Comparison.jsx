@@ -193,6 +193,16 @@ const Comparison = () => {
         </div>
       </div>
 
+      {/* AI Insight — above selector, shown only when salespersons are selected */}
+      {selected.length > 0 && (
+        <AIInsightButton
+          contextData={comparisonData}
+          contextType="Salespersons Side-by-Side Comparison"
+          title="Generate AI Comparison Analysis"
+          isBanner={true}
+        />
+      )}
+
       {/* Salesperson Selector */}
       <div className="data-table-wrapper" style={{ marginBottom: '20px' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -246,15 +256,6 @@ const Comparison = () => {
         </div>
       ) : (
         <>
-          <div style={{ marginBottom: '24px' }}>
-            <AIInsightButton 
-              contextData={comparisonData} 
-              contextType="Salespersons Side-by-Side Comparison" 
-              title="Generate AI Comparison Analysis" 
-              isBanner={true} 
-            />
-          </div>
-
           {/* Summary Comparison Table */}
           <div className="data-table-wrapper" style={{ marginBottom: '20px' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>

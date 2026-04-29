@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiHome, FiUploadCloud, FiUsers, FiLogOut, FiBox, FiBarChart2 } from 'react-icons/fi';
+import { FiHome, FiUploadCloud, FiUsers, FiLogOut, FiBox, FiBarChart2, FiDollarSign, FiGitBranch } from 'react-icons/fi';
 import NotificationPanel from './NotificationPanel';
 import './Sidebar.css';
 
@@ -20,7 +20,7 @@ const Sidebar = ({ isOpen, onClose, user: propUser }) => {
   };
 
   const isAdmin = user.role === 'admin';
-  const permissions = user.permissions || ['overview', 'products', 'salesperson', 'comparison', 'upload'];
+  const permissions = user.permissions || ['overview', 'products', 'salesperson', 'comparison', 'upload', 'financials', 'channel'];
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -52,6 +52,18 @@ const Sidebar = ({ isOpen, onClose, user: propUser }) => {
           <NavLink to="/comparison" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <FiBarChart2 className="nav-icon" />
             <span>Comparison</span>
+          </NavLink>
+        )}
+        {(isAdmin || permissions.includes('financials')) && (
+          <NavLink to="/financial" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiDollarSign className="nav-icon" />
+            <span>Financials</span>
+          </NavLink>
+        )}
+        {(isAdmin || permissions.includes('channel')) && (
+          <NavLink to="/channel" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiGitBranch className="nav-icon" />
+            <span>Channel</span>
           </NavLink>
         )}
         

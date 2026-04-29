@@ -54,6 +54,7 @@ export const uploadFile = (file, onProgress) => {
 };
 export const getUploadHistory = () => api.get('/upload/history');
 export const deleteUpload = (uploadId) => api.delete(`/upload/${uploadId}`);
+export const purgeAllData = (type) => api.delete(`/upload/purge/${type}`);
 
 // Dashboard
 export const getDashboardSummary = (params) => api.get('/dashboard/summary', { params });
@@ -71,6 +72,22 @@ export const getSalespersonList = (params) => api.get('/salesperson/list', { par
 export const getSalespersonPerformance = (name, params) =>
   api.get(`/salesperson/${encodeURIComponent(name)}/performance`, { params });
 export const getSalespersonComparison = (params) => api.get('/salesperson/compare/all', { params });
+
+// Channel (B2B vs B2C)
+export const getChannelSummary = (params) => api.get('/channel/summary', { params });
+export const getChannelTrend = (params) => api.get('/channel/trend', { params });
+export const getChannelTopCustomers = (params) => api.get('/channel/top-customers', { params });
+export const getChannelStateBreakdown = (params) => api.get('/channel/state-breakdown', { params });
+export const getChannelProductBreakdown = (params) => api.get('/channel/product-breakdown', { params });
+export const getChannelCategoryBreakdown = (params) => api.get('/channel/category-breakdown', { params });
+
+// Financials
+export const getFinancialSummary = (params) => api.get('/financials/summary', { params });
+export const getFinancialTaxTrend = (params) => api.get('/financials/tax-trend', { params });
+export const getFinancialStateWiseTax = (params) => api.get('/financials/state-wise-tax', { params });
+export const getFinancialGSTTypeSplit = (params) => api.get('/financials/gst-type-split', { params });
+export const getFinancialInvoices = (params) => api.get('/financials/invoices', { params });
+export const getFinancialFilters = () => api.get('/financials/filters');
 
 // AI Insights
 export const getAIInsights = (context, contextType) => api.post('/ai/insights', { context, contextType });

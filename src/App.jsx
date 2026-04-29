@@ -15,6 +15,8 @@ import Products from './pages/Products';
 import Comparison from './pages/Comparison';
 import AdminPanel from './pages/AdminPanel';
 import LogsPanel from './pages/LogsPanel';
+import Financial from './pages/Financial';
+import Channel from './pages/Channel';
 
 // No Access Page Component
 const NoAccessPage = () => (
@@ -115,6 +117,8 @@ const App = () => {
           <Route path="/salesperson" element={<ProtectedView permission="salesperson"><Salesperson /></ProtectedView>} />
           <Route path="/comparison" element={<ProtectedView permission="comparison"><Comparison /></ProtectedView>} />
           <Route path="/upload" element={<ProtectedView permission="upload"><Upload /></ProtectedView>} />
+          <Route path="/financial" element={<ProtectedView permission="financials"><Financial /></ProtectedView>} />
+          <Route path="/channel" element={<ProtectedView permission="channel"><Channel /></ProtectedView>} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/logs" element={<LogsPanel />} />
         </Route>
