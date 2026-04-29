@@ -1,47 +1,81 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FiHome, FiUploadCloud, FiUsers, FiLogOut, FiBox, FiBarChart2 } from 'react-icons/fi';
+import NotificationPanel from './NotificationPanel';
 import './Sidebar.css';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, user: propUser }) => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
+  const localUser = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
+  const user = propUser || localUser;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const { adminGetLogs } = await import('../services/api'); // optional logging
+    } catch {}
     localStorage.removeItem('flexibond_token');
     localStorage.removeItem('flexibond_user');
     if (onClose) onClose();
     navigate('/login');
   };
 
+  const isAdmin = user.role === 'admin';
+  const permissions = user.permissions || ['overview', 'products', 'salesperson', 'comparison', 'upload'];
+
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <h2>Flexibond</h2>
-        <p>Analytics</p>
+        <p>Analytics Hub</p>
       </div>
 
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <FiHome className="nav-icon" />
-          <span>Dashboard</span>
-        </NavLink>
-        <NavLink to="/products" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <FiBox className="nav-icon" />
-          <span>Products</span>
-        </NavLink>
-        <NavLink to="/salesperson" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <FiUsers className="nav-icon" />
-          <span>Salesperson</span>
-        </NavLink>
-        <NavLink to="/comparison" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <FiBarChart2 className="nav-icon" />
-          <span>Comparison</span>
-        </NavLink>
-        <NavLink to="/upload" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <FiUploadCloud className="nav-icon" />
-          <span>Data Upload</span>
-        </NavLink>
+        {(isAdmin || permissions.includes('overview')) && (
+          <NavLink to="/dashboard" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiHome className="nav-icon" />
+            <span>Dashboard</span>
+          </NavLink>
+        )}
+        {(isAdmin || permissions.includes('products')) && (
+          <NavLink to="/products" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiBox className="nav-icon" />
+            <span>Products</span>
+          </NavLink>
+        )}
+        {(isAdmin || permissions.includes('salesperson')) && (
+          <NavLink to="/salesperson" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiUsers className="nav-icon" />
+            <span>Salesperson</span>
+          </NavLink>
+        )}
+        {(isAdmin || permissions.includes('comparison')) && (
+          <NavLink to="/comparison" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiBarChart2 className="nav-icon" />
+            <span>Comparison</span>
+          </NavLink>
+        )}
+        
+        {/* Admin and Upload Access */}
+        {(isAdmin || permissions.includes('upload')) && (
+          <NavLink to="/upload" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <FiUploadCloud className="nav-icon" />
+            <span>Data Upload</span>
+          </NavLink>
+        )}
+
+        {isAdmin && (
+          <>
+            <div style={{ padding: '16px 20px 8px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Admin Only</div>
+            <NavLink to="/admin" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <FiUsers className="nav-icon" />
+              <span>User Management</span>
+            </NavLink>
+            <NavLink to="/logs" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <FiBarChart2 className="nav-icon" />
+              <span>System Logs</span>
+            </NavLink>
+          </>
+        )}
       </nav>
 
       <div className="sidebar-footer">

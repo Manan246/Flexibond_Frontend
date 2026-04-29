@@ -4,8 +4,12 @@ import { Bar, Doughnut } from 'react-chartjs-2';
 import ChartCard from '../components/ChartCard';
 import { FiUsers, FiDollarSign, FiShoppingCart, FiMapPin } from 'react-icons/fi';
 import AIInsightButton from '../components/AIInsightButton';
+import ExportControls from '../components/ExportControls';
+import GlobalSearch from '../components/GlobalSearch';
+import NotificationPanel from '../components/NotificationPanel';
 
 const Salesperson = () => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [list, setList] = useState([]);
   const [selectedSP, setSelectedSP] = useState(null);
   const [details, setDetails] = useState(null);
@@ -56,17 +60,29 @@ const Salesperson = () => {
           <h1>Salesperson Analytics</h1>
           <p>Analyze performance, top customers, and product focus across the sales team.</p>
         </div>
-        <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <button 
-            onClick={() => setMetric('revenue')} 
-            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
-            Revenue
-          </button>
-          <button 
-            onClick={() => setMetric('qty')} 
-            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
-            Quantity
-          </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <GlobalSearch onSearchSelect={(res) => {
+            if (res.salesperson) {
+              setSelectedSP(res.salesperson);
+            } else {
+              alert('Please select a salesperson on this page. For other search criteria, use the Overview tab.');
+            }
+          }} />
+          <ExportControls pageTitle="Salesperson_Performance" />
+          {user.role === 'admin' && <NotificationPanel />}
+          
+          <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button 
+              onClick={() => setMetric('revenue')} 
+              style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+              Revenue
+            </button>
+            <button 
+              onClick={() => setMetric('qty')} 
+              style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+              Quantity
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,22 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiMenu } from 'react-icons/fi';
 
+import { getProfile } from './services/api';
 import Sidebar from './components/Sidebar';
+import NotificationPanel from './components/NotificationPanel';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import Salesperson from './pages/Salesperson';
 import Products from './pages/Products';
 import Comparison from './pages/Comparison';
+import AdminPanel from './pages/AdminPanel';
+import LogsPanel from './pages/LogsPanel';
+
+// No Access Page Component
+const NoAccessPage = () => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: '20px' }}>
+    <h1 style={{ color: 'var(--text-primary)', textAlign: 'center', fontSize: '2.5rem', fontWeight: 700 }}>Contact Admin for Access</h1>
+    <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '12px', fontSize: '1.1rem' }}>You currently have no active permissions assigned.</p>
+  </div>
+);
+
+// Protected View Wrapper
+const ProtectedView = ({ permission, children }) => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
+  const isAdmin = user.role === 'admin';
+  const perms = user.permissions || [];
+  
+  if (isAdmin || perms.includes(permission)) {
+    return children;
+  }
+  return <Navigate to="/no-access" replace />;
+};
+
+// Default Route Calculator
+const DefaultRedirect = () => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
+  if (!user || !user.role) return <Navigate to="/login" replace />;
+  if (user.role === 'admin') return <Navigate to="/dashboard" replace />;
+  
+  const perms = user.permissions || [];
+  if (perms.includes('overview')) return <Navigate to="/dashboard" replace />;
+  if (perms.includes('products')) return <Navigate to="/products" replace />;
+  if (perms.includes('salesperson')) return <Navigate to="/salesperson" replace />;
+  if (perms.includes('comparison')) return <Navigate to="/comparison" replace />;
+  if (perms.includes('upload')) return <Navigate to="/upload" replace />;
+  
+  return <Navigate to="/no-access" replace />;
+};
 
 // Auth Guard component
 const PrivateRoute = () => {
   const token = localStorage.getItem('flexibond_token');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('flexibond_user') || '{}'));
   
+  useEffect(() => {
+    if (!token) return;
+    
+    // Refresh user profile/permissions periodically/on-navigation
+    getProfile()
+      .then(res => {
+        if (res.data && res.data.user) {
+          localStorage.setItem('flexibond_user', JSON.stringify(res.data.user));
+          setUser(res.data.user);
+        }
+      })
+      .catch(err => {
+        console.error('Session validation failed:', err);
+      });
+  }, [token]);
+
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -32,7 +89,7 @@ const PrivateRoute = () => {
         <div className="mobile-logo">Flexibond</div>
       </header>
 
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} />
       
       {isSidebarOpen && <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}></div>}
 
@@ -51,12 +108,15 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         
         <Route element={<PrivateRoute />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/salesperson" element={<Salesperson />} />
-          <Route path="/comparison" element={<Comparison />} />
-          <Route path="/upload" element={<Upload />} />
+          <Route path="/" element={<DefaultRedirect />} />
+          <Route path="/no-access" element={<NoAccessPage />} />
+          <Route path="/dashboard" element={<ProtectedView permission="overview"><Dashboard /></ProtectedView>} />
+          <Route path="/products" element={<ProtectedView permission="products"><Products /></ProtectedView>} />
+          <Route path="/salesperson" element={<ProtectedView permission="salesperson"><Salesperson /></ProtectedView>} />
+          <Route path="/comparison" element={<ProtectedView permission="comparison"><Comparison /></ProtectedView>} />
+          <Route path="/upload" element={<ProtectedView permission="upload"><Upload /></ProtectedView>} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/logs" element={<LogsPanel />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

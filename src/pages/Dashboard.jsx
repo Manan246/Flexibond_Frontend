@@ -5,6 +5,9 @@ import KPICard from '../components/KPICard';
 import ChartCard from '../components/ChartCard';
 import FilterBar from '../components/FilterBar';
 import AIInsightButton from '../components/AIInsightButton';
+import ExportControls from '../components/ExportControls';
+import GlobalSearch from '../components/GlobalSearch';
+import NotificationPanel from '../components/NotificationPanel';
 import {
   getDashboardSummary,
   getRevenueTrend,
@@ -16,9 +19,11 @@ import {
 } from '../services/api';
 
 const Dashboard = () => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    startDate: '', endDate: '', salesperson: '', category: '', state: ''
+    startDate: '', endDate: '', salesperson: '', category: '', state: '',
+    product: '', thickness: '', dimensions: ''
   });
   const [metric, setMetric] = useState('revenue');
   const [trendGroupBy, setTrendGroupBy] = useState('day');
@@ -70,7 +75,10 @@ const Dashboard = () => {
 
   const handleFilterChange = (newFilters, clear = false) => {
     if (clear) {
-      setFilters({ startDate: '', endDate: '', salesperson: '', category: '', state: '' });
+      setFilters({ 
+        startDate: '', endDate: '', salesperson: '', category: '', state: '',
+        product: '', thickness: '', dimensions: ''
+      });
     } else {
       setFilters(prev => ({ ...prev, ...newFilters }));
     }
@@ -143,17 +151,23 @@ const Dashboard = () => {
           <h1>Dashboard Overview</h1>
           <p>Key performance indicators and analytics for Flexibond</p>
         </div>
-        <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <button 
-            onClick={() => setMetric('revenue')} 
-            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
-            Revenue
-          </button>
-          <button 
-            onClick={() => setMetric('qty')} 
-            style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
-            Quantity
-          </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <GlobalSearch onSearchSelect={(res) => setFilters(prev => ({ ...prev, ...res }))} />
+          <ExportControls pageTitle="Overview_Dashboard" />
+          {user.role === 'admin' && <NotificationPanel />}
+          
+          <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button 
+              onClick={() => setMetric('revenue')} 
+              style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+              Revenue
+            </button>
+            <button 
+              onClick={() => setMetric('qty')} 
+              style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>
+              Quantity
+            </button>
+          </div>
         </div>
       </div>
 

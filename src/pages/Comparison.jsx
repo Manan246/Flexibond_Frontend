@@ -3,11 +3,15 @@ import { Bar, Line } from 'react-chartjs-2';
 import { FiUserCheck, FiUsers, FiSearch } from 'react-icons/fi';
 import ChartCard from '../components/ChartCard';
 import AIInsightButton from '../components/AIInsightButton';
+import ExportControls from '../components/ExportControls';
+import GlobalSearch from '../components/GlobalSearch';
+import NotificationPanel from '../components/NotificationPanel';
 import { getSalespersonList, getSalespersonComparison, getSalespersonPerformance } from '../services/api';
 
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
 
 const Comparison = () => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [allSP, setAllSP] = useState([]);
   const [selected, setSelected] = useState([]);
@@ -166,9 +170,26 @@ const Comparison = () => {
           <h1>Salesperson Comparison</h1>
           <p>Compare performance metrics across multiple salespersons side-by-side</p>
         </div>
-        <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <button onClick={() => setMetric('revenue')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Revenue</button>
-          <button onClick={() => setMetric('qty')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Quantity</button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <GlobalSearch onSearchSelect={(res) => {
+            if (res.salesperson) {
+              if (!selected.includes(res.salesperson)) {
+                if (selected.length >= 8) {
+                  return alert('You can compare a maximum of 8 salespersons.');
+                }
+                setSelected([...selected, res.salesperson]);
+              }
+            } else {
+              alert('Please select a salesperson on this page.');
+            }
+          }} />
+          <ExportControls pageTitle="Salesperson_Comparison" />
+          {user.role === 'admin' && <NotificationPanel />}
+          
+          <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button onClick={() => setMetric('revenue')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Revenue</button>
+            <button onClick={() => setMetric('qty')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Quantity</button>
+          </div>
         </div>
       </div>
 

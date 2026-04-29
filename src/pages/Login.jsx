@@ -34,7 +34,21 @@ const Login = () => {
         localStorage.setItem('flexibond_token', res.data.token);
         localStorage.setItem('flexibond_user', JSON.stringify(res.data.user));
         toast.success('Login successful!');
-        navigate('/dashboard');
+        
+        const user = res.data.user;
+        let defaultRoute = '/dashboard';
+        
+        if (user.role === 'viewer') {
+          const perms = user.permissions || [];
+          if (perms.includes('overview')) defaultRoute = '/dashboard';
+          else if (perms.includes('products')) defaultRoute = '/products';
+          else if (perms.includes('salesperson')) defaultRoute = '/salesperson';
+          else if (perms.includes('comparison')) defaultRoute = '/comparison';
+          else if (perms.includes('upload')) defaultRoute = '/upload';
+          else defaultRoute = '/no-access';
+        }
+        
+        navigate(defaultRoute);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed. Please check your credentials.');

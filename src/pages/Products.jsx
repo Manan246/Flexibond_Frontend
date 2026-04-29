@@ -5,6 +5,9 @@ import KPICard from '../components/KPICard';
 import ChartCard from '../components/ChartCard';
 import FilterBar from '../components/FilterBar';
 import AIInsightButton from '../components/AIInsightButton';
+import ExportControls from '../components/ExportControls';
+import GlobalSearch from '../components/GlobalSearch';
+import NotificationPanel from '../components/NotificationPanel';
 import {
   getTopProducts,
   getCategoryBreakdown,
@@ -14,9 +17,13 @@ import {
 } from '../services/api';
 
 const Products = () => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState('revenue');
-  const [filters, setFilters] = useState({ startDate: '', endDate: '', salesperson: '', category: '', state: '' });
+  const [filters, setFilters] = useState({ 
+    startDate: '', endDate: '', salesperson: '', category: '', state: '',
+    product: '', thickness: '', dimensions: '' 
+  });
   const [filterOptions, setFilterOptions] = useState({});
   const [data, setData] = useState({
     products: null,
@@ -57,7 +64,10 @@ const Products = () => {
 
   const handleFilterChange = (newFilters, clear = false) => {
     if (clear) {
-      setFilters({ startDate: '', endDate: '', salesperson: '', category: '', state: '' });
+      setFilters({ 
+        startDate: '', endDate: '', salesperson: '', category: '', state: '',
+        product: '', thickness: '', dimensions: ''
+      });
     } else {
       setFilters(prev => ({ ...prev, ...newFilters }));
     }
@@ -144,9 +154,15 @@ const Products = () => {
           <h1>Product Analytics</h1>
           <p>Detailed breakdown of products, categories, colours, and dimensions</p>
         </div>
-        <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-          <button onClick={() => setMetric('revenue')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Revenue</button>
-          <button onClick={() => setMetric('qty')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Quantity</button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <GlobalSearch onSearchSelect={(res) => setFilters(prev => ({ ...prev, ...res }))} />
+          <ExportControls pageTitle="Product_Analytics" />
+          {user.role === 'admin' && <NotificationPanel />}
+          
+          <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button onClick={() => setMetric('revenue')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Revenue</button>
+            <button onClick={() => setMetric('qty')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Quantity</button>
+          </div>
         </div>
       </div>
 

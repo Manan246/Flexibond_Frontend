@@ -1,14 +1,64 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { FiUploadCloud, FiFileText, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiUploadCloud, FiFileText, FiCheckCircle, FiXCircle, FiTrash2, FiClock } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { uploadFile } from '../services/api';
+import { uploadFile, getUploadHistory, deleteUpload } from '../services/api';
+import NotificationPanel from '../components/NotificationPanel';
 
 const Upload = () => {
+  const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
+  const isAdmin = user.role === 'admin';
+  const permissions = user.permissions || ['overview', 'products', 'salesperson', 'comparison', 'upload'];
+
+  if (!isAdmin && !permissions.includes('upload')) {
+    return (
+      <div className="page-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '16px' }}>
+        <FiXCircle size={48} color="var(--danger)" />
+        <h2 style={{ color: 'var(--text-primary)' }}>Access Restricted</h2>
+        <p style={{ color: 'var(--text-secondary)' }}>You do not have permission to access the Data Upload area.</p>
+      </div>
+    );
+  }
+
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  const fetchHistory = async () => {
+    try {
+      setLoadingHistory(true);
+      const res = await getUploadHistory();
+      if (res.data && res.data.uploads) {
+        setHistory(res.data.uploads);
+      }
+    } catch (err) {
+      toast.error('Failed to load upload history');
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const handleDeleteUpload = async (uploadId) => {
+    if (!window.confirm('Are you sure you want to delete this upload? ALL associated records will be permanently removed!')) {
+      return;
+    }
+    try {
+      const res = await deleteUpload(uploadId);
+      if (res.data.success) {
+        toast.success(res.data.message);
+        fetchHistory();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Deletion failed');
+    }
+  };
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles?.length > 0) {
@@ -58,6 +108,7 @@ const Upload = () => {
         setResult(res.data.result);
         toast.success(res.data.message);
         setFile(null); // Clear file after success
+        fetchHistory();
       }
     } catch (err) {
       setProgress(0);
@@ -74,9 +125,12 @@ const Upload = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <h1>Data Upload</h1>
-        <p>Upload Excel or PDF files containing sales, inventory, or billing data. The system will automatically classify and process the records.</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>Data Upload</h1>
+          <p>Upload Excel or PDF files containing sales, inventory, or billing data.</p>
+        </div>
+        {isAdmin && <NotificationPanel />}
       </div>
 
       <div 
@@ -163,6 +217,34 @@ const Upload = () => {
             </div>
           </div>
 
+          {result.duplicateRows && result.duplicateRows.length > 0 && (
+            <div style={{ marginTop: '30px', padding: '20px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+              <h4 style={{ color: 'var(--warning)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Skipped Duplicates Log
+              </h4>
+              <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                  <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-light)', zIndex: 5 }}>
+                    <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                      <th style={{ padding: '10px' }}>Row / Sr.No</th>
+                      <th style={{ padding: '10px' }}>Identifier</th>
+                      <th style={{ padding: '10px' }}>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.duplicateRows.map((dup, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td style={{ padding: '10px', color: 'var(--text-muted)' }}>{dup.srNo || idx + 1}</td>
+                        <td style={{ padding: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>{dup.identifier}</td>
+                        <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{dup.details}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {result.errorMessages && result.errorMessages.length > 0 && (
             <div style={{ marginTop: '20px', padding: '16px', background: 'var(--danger-bg)', borderRadius: 'var(--radius-md)' }}>
               <h4 style={{ color: 'var(--danger)', marginBottom: '10px' }}>Error Details:</h4>
@@ -192,6 +274,51 @@ const Upload = () => {
           )}
         </div>
       )}
+      {/* Upload History & Rollback UI */}
+      <div className="chart-card" style={{ padding: '24px', marginTop: '40px' }}>
+        <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-600)' }}>
+          <FiClock /> Upload & Rollback History
+        </h3>
+        
+        {loadingHistory ? (
+          <p style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>Loading history trace...</p>
+        ) : history.length === 0 ? (
+          <p style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>No previous uploads recorded.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  <th style={{ padding: '12px 16px' }}>File Name</th>
+                  <th style={{ padding: '12px 16px' }}>Data Type</th>
+                  <th style={{ padding: '12px 16px' }}>Date Uploaded</th>
+                  <th style={{ padding: '12px 16px' }}>Records</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((item) => (
+                  <tr key={item._id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.fileName}</td>
+                    <td style={{ padding: '14px 16px', textTransform: 'uppercase', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.dataType?.replace(/_/g, ' ')}</td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>{new Date(item.uploadDate || item.createdAt).toLocaleString('en-IN')}</td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-primary)' }}>{item.insertedCount}</td>
+                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                      <button 
+                        onClick={() => handleDeleteUpload(item._id)} 
+                        style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '8px', borderRadius: '4px' }}
+                        title="Delete Upload Data"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

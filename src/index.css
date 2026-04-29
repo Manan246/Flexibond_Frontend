@@ -648,6 +648,7 @@ body {
   
   .kpi-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .salesperson-grid { grid-template-columns: minmax(0, 1fr); }
+  .salesperson-layout { grid-template-columns: minmax(0, 1fr); }
   .page-header h1 { font-size: 1.5rem; }
   .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
   .filter-bar select, .filter-bar input { width: 100%; min-width: auto; }

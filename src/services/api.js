@@ -1,9 +1,16 @@
 import axios from 'axios';
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isLAN = window.location.hostname.startsWith('192.168.') || 
+              window.location.hostname.startsWith('10.') || 
+              window.location.hostname.startsWith('172.') ||
+              window.location.hostname.endsWith('.local');
+
 const API_BASE = isLocalhost 
   ? 'http://localhost:5000/api' 
-  : 'https://flexibond-backend-vkc0.onrender.com/api';
+  : isLAN 
+    ? `http://${window.location.hostname}:5000/api`
+    : 'https://flexibond-backend-vkc0.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -34,6 +41,7 @@ api.interceptors.response.use(
 // Auth
 export const login = (username, password) =>
   api.post('/auth/login', { username, password });
+export const getProfile = () => api.get('/auth/me');
 
 // Upload
 export const uploadFile = (file, onProgress) => {
@@ -45,6 +53,7 @@ export const uploadFile = (file, onProgress) => {
   });
 };
 export const getUploadHistory = () => api.get('/upload/history');
+export const deleteUpload = (uploadId) => api.delete(`/upload/${uploadId}`);
 
 // Dashboard
 export const getDashboardSummary = (params) => api.get('/dashboard/summary', { params });
@@ -65,5 +74,12 @@ export const getSalespersonComparison = (params) => api.get('/salesperson/compar
 
 // AI Insights
 export const getAIInsights = (context, contextType) => api.post('/ai/insights', { context, contextType });
+
+// User Management & Logs (Admin Only)
+export const adminGetUsers = () => api.get('/auth/users');
+export const adminCreateUser = (userData) => api.post('/auth/users', userData);
+export const adminUpdateUser = (userId, userData) => api.put(`/auth/users/${userId}`, userData);
+export const adminDeleteUser = (userId) => api.delete(`/auth/users/${userId}`);
+export const adminGetLogs = () => api.get('/auth/logs');
 
 export default api;
