@@ -276,53 +276,53 @@ const Financial = () => {
 
       {/* KPI Cards */}
       {summary && (
-        <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', marginBottom: '24px' }}>
+        <div className="kpi-grid">
           <div className="kpi-card">
             <div className="kpi-icon blue"><FiDollarSign /></div>
             <div className="kpi-label">Assessable Value</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatCurrency(summary.totalAssessable)}</div>
+            <div className="kpi-value">{formatCurrency(summary.totalAssessable)}</div>
             <div className="kpi-sub">{formatNumber(summary.invoiceCount)} invoices</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon orange"><FiTrendingUp /></div>
             <div className="kpi-label">Total Tax Collected</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatCurrency(summary.totalTax)}</div>
+            <div className="kpi-value">{formatCurrency(summary.totalTax)}</div>
             <div className="kpi-sub">CGST + SGST + IGST + Cess</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon green"><FiDollarSign /></div>
             <div className="kpi-label">Total Bill Amount</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatCurrency(summary.totalBill)}</div>
+            <div className="kpi-value">{formatCurrency(summary.totalBill)}</div>
             <div className="kpi-sub">Incl. taxes & other charges</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon red"><FiPercent /></div>
             <div className="kpi-label">Effective Tax Rate</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{summary.effectiveTaxRate}%</div>
+            <div className="kpi-value">{summary.effectiveTaxRate}%</div>
             <div className="kpi-sub">Tax / Assessable Value</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon blue"><FiFileText /></div>
             <div className="kpi-label">CGST + SGST</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatCurrency(summary.totalCGST + summary.totalSGST)}</div>
+            <div className="kpi-value">{formatCurrency(summary.totalCGST + summary.totalSGST)}</div>
             <div className="kpi-sub">Intra-state transactions</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon orange"><FiFileText /></div>
             <div className="kpi-label">IGST</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatCurrency(summary.totalIGST)}</div>
+            <div className="kpi-value">{formatCurrency(summary.totalIGST)}</div>
             <div className="kpi-sub">Inter-state transactions</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon green"><FiFileText /></div>
             <div className="kpi-label">Credit Notes</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatNumber(summary.creditNotes)}</div>
+            <div className="kpi-value">{formatNumber(summary.creditNotes)}</div>
             <div className="kpi-sub">CR entries</div>
           </div>
           <div className="kpi-card">
             <div className="kpi-icon red"><FiFileText /></div>
             <div className="kpi-label">GST Cess</div>
-            <div className="kpi-value" style={{ fontSize: '1.3rem' }}>{formatCurrency(summary.totalCess)}</div>
+            <div className="kpi-value">{formatCurrency(summary.totalCess)}</div>
             <div className="kpi-sub">Additional cess collected</div>
           </div>
         </div>
@@ -421,8 +421,8 @@ const Financial = () => {
         </ChartCard>
       </div>
 
-      {/* Invoice Table */}
-      <div className="data-table-wrapper" style={{ marginBottom: '8px' }}>
+      {/* Invoice Table — scrolls both ways inside its container, never affects page width */}
+      <div className="data-table-wrapper" style={{ marginBottom: '8px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, whiteSpace: 'nowrap' }}>
             Invoice Register
@@ -466,9 +466,9 @@ const Financial = () => {
             </div>
           </div>
         </div>
-        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '500px', WebkitOverflowScrolling: 'touch' }}>
           <table className="data-table" style={{ minWidth: '1100px' }}>
-            <thead>
+            <thead style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg-light)' }}>
               <tr>
                 <th style={{ whiteSpace: 'nowrap' }}>Date</th>
                 <th style={{ whiteSpace: 'nowrap' }}>Invoice No</th>
