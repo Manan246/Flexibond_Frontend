@@ -55,12 +55,12 @@ const Salesperson = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header">
         <div>
           <h1>Salesperson Analytics</h1>
           <p>Analyze performance, top customers, and product focus across the sales team.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div className="page-controls">
           <GlobalSearch onSearchSelect={(res) => {
             if (res.salesperson) {
               setSelectedSP(res.salesperson);
@@ -70,8 +70,8 @@ const Salesperson = () => {
           }} />
           <ExportControls pageTitle="Salesperson_Performance" />
           {user.role === 'admin' && <NotificationPanel />}
-          
-          <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+
+          <div className="metric-toggle">
             <button 
               onClick={() => setMetric('revenue')} 
               style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>

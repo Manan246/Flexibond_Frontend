@@ -59,14 +59,14 @@ const LogsPanel = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header">
         <div>
           <h1>System Logs</h1>
           <p>Real-time audit trails of logins, updates, and uploads.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button 
-            onClick={fetchLogs} 
+        <div className="page-controls">
+          <button
+            onClick={fetchLogs}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
           >
             <FiRefreshCw className={loading ? 'spin' : ''} /> Refresh Logs
@@ -80,13 +80,13 @@ const LogsPanel = () => {
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-600)' }}>
             <FiActivity /> Operational Activity Stream
           </h3>
-          <div style={{ position: 'relative', width: '300px' }}>
-            <input 
-              type="text" 
-              placeholder="Search logs by action, user..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-light)', color: 'var(--text-primary)', fontSize: '0.85rem' }} 
+          <div style={{ flex: 1, minWidth: 0, maxWidth: '300px' }}>
+            <input
+              type="text"
+              placeholder="Search logs by action, user..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-light)', color: 'var(--text-primary)', fontSize: '0.85rem' }}
             />
           </div>
         </div>
@@ -98,42 +98,42 @@ const LogsPanel = () => {
         ) : filteredLogs.length === 0 ? (
           <p style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>No matching logs found for "{searchTerm}".</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                <th style={{ padding: '12px 16px' }}>Action</th>
-                <th style={{ padding: '12px 16px' }}>Username</th>
-                <th style={{ padding: '12px 16px' }}>Details</th>
-                <th style={{ padding: '12px 16px' }}>IP / Source</th>
-                <th style={{ padding: '12px 16px' }}>Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.map((log, i) => (
-                <tr 
-                  key={log._id || i} 
-                  style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem', background: i % 2 === 0 ? 'transparent' : 'var(--bg-light)' }}
-                >
-                  <td style={{ padding: '14px 16px', fontWeight: 700, color: getActionColor(log.action) }}>
-                    {log.action}
-                  </td>
-                  <td style={{ padding: '14px 16px', color: 'var(--text-primary)', textTransform: 'capitalize' }}>
-                    {log.username}
-                  </td>
-                  <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', maxWidth: '400px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {log.details}
-                  </td>
-                  <td style={{ padding: '14px 16px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                    {log.ip || 'Unknown'}
-                  </td>
-                  <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                    {formatTimestamp(log.timestamp)}
-                  </td>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>Action</th>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>Username</th>
+                  <th style={{ padding: '12px 16px' }}>Details</th>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>IP / Source</th>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>Timestamp</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredLogs.map((log, i) => (
+                  <tr
+                    key={log._id || i}
+                    style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.87rem', background: i % 2 === 0 ? 'transparent' : 'var(--bg-light)' }}
+                  >
+                    <td style={{ padding: '12px 16px', fontWeight: 700, color: getActionColor(log.action), whiteSpace: 'nowrap' }}>
+                      {log.action}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-primary)', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>
+                      {log.username}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', maxWidth: '260px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {log.details}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                      {log.ip || 'Unknown'}
+                    </td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+                      {formatTimestamp(log.timestamp)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

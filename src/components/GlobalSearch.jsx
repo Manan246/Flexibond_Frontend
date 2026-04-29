@@ -114,7 +114,7 @@ const GlobalSearch = ({ onSearchSelect }) => {
   };
 
   return (
-    <div ref={wrapperRef} style={{ position: 'relative', width: '300px' }}>
+    <div ref={wrapperRef} className="global-search-wrapper">
       <div style={{ position: 'relative' }}>
         <FiSearch style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
         <input

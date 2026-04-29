@@ -125,7 +125,7 @@ const Upload = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header">
         <div>
           <h1>Data Upload</h1>
           <p>Upload Excel or PDF files containing sales, inventory, or billing data.</p>
@@ -149,7 +149,7 @@ const Upload = () => {
       </div>
 
       {file && !uploading && !result && (
-        <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+        <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', padding: '16px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FiFileText style={{ fontSize: '1.5rem', color: 'var(--primary-500)' }} />
             <div>
@@ -222,20 +222,20 @@ const Upload = () => {
               <h4 style={{ color: 'var(--warning)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Skipped Duplicates Log
               </h4>
-              <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+              <div style={{ maxHeight: '250px', overflowY: 'auto', overflowX: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid var(--border-color)', borderRadius: '4px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem', minWidth: '400px' }}>
                   <thead style={{ position: 'sticky', top: 0, background: 'var(--bg-light)', zIndex: 5 }}>
                     <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                      <th style={{ padding: '10px' }}>Row / Sr.No</th>
-                      <th style={{ padding: '10px' }}>Identifier</th>
+                      <th style={{ padding: '10px', whiteSpace: 'nowrap' }}>Row / Sr.No</th>
+                      <th style={{ padding: '10px', whiteSpace: 'nowrap' }}>Identifier</th>
                       <th style={{ padding: '10px' }}>Details</th>
                     </tr>
                   </thead>
                   <tbody>
                     {result.duplicateRows.map((dup, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '10px', color: 'var(--text-muted)' }}>{dup.srNo || idx + 1}</td>
-                        <td style={{ padding: '10px', fontWeight: 600, color: 'var(--text-primary)' }}>{dup.identifier}</td>
+                        <td style={{ padding: '10px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{dup.srNo || idx + 1}</td>
+                        <td style={{ padding: '10px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{dup.identifier}</td>
                         <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{dup.details}</td>
                       </tr>
                     ))}
@@ -285,27 +285,27 @@ const Upload = () => {
         ) : history.length === 0 ? (
           <p style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>No previous uploads recorded.</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                   <th style={{ padding: '12px 16px' }}>File Name</th>
-                  <th style={{ padding: '12px 16px' }}>Data Type</th>
-                  <th style={{ padding: '12px 16px' }}>Date Uploaded</th>
-                  <th style={{ padding: '12px 16px' }}>Records</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>Data Type</th>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>Date Uploaded</th>
+                  <th style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>Records</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((item) => (
-                  <tr key={item._id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
-                    <td style={{ padding: '14px 16px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.fileName}</td>
-                    <td style={{ padding: '14px 16px', textTransform: 'uppercase', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.dataType?.replace(/_/g, ' ')}</td>
-                    <td style={{ padding: '14px 16px', color: 'var(--text-muted)' }}>{new Date(item.uploadDate || item.createdAt).toLocaleString('en-IN')}</td>
-                    <td style={{ padding: '14px 16px', color: 'var(--text-primary)' }}>{item.insertedCount}</td>
-                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                      <button 
-                        onClick={() => handleDeleteUpload(item._id)} 
+                  <tr key={item._id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.87rem' }}>
+                    <td style={{ padding: '12px 16px', fontWeight: 500, color: 'var(--text-primary)' }}>{item.fileName}</td>
+                    <td style={{ padding: '12px 16px', textTransform: 'uppercase', fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{item.dataType?.replace(/_/g, ' ')}</td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(item.uploadDate || item.createdAt).toLocaleString('en-IN')}</td>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{item.insertedCount}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <button
+                        onClick={() => handleDeleteUpload(item._id)}
                         style={{ background: 'transparent', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '8px', borderRadius: '4px' }}
                         title="Delete Upload Data"
                       >

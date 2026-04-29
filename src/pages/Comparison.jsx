@@ -165,12 +165,12 @@ const Comparison = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="page-header">
         <div>
           <h1>Salesperson Comparison</h1>
           <p>Compare performance metrics across multiple salespersons side-by-side</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div className="page-controls">
           <GlobalSearch onSearchSelect={(res) => {
             if (res.salesperson) {
               if (!selected.includes(res.salesperson)) {
@@ -185,8 +185,8 @@ const Comparison = () => {
           }} />
           <ExportControls pageTitle="Salesperson_Comparison" />
           {user.role === 'admin' && <NotificationPanel />}
-          
-          <div className="metric-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--bg-light)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+
+          <div className="metric-toggle">
             <button onClick={() => setMetric('revenue')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'revenue' ? '#fff' : 'transparent', boxShadow: metric === 'revenue' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'revenue' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Revenue</button>
             <button onClick={() => setMetric('qty')} style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: metric === 'qty' ? '#fff' : 'transparent', boxShadow: metric === 'qty' ? 'var(--shadow-sm)' : 'none', fontWeight: 600, cursor: 'pointer', color: metric === 'qty' ? 'var(--primary-600)' : 'var(--text-secondary)' }}>Quantity</button>
           </div>
@@ -200,14 +200,14 @@ const Comparison = () => {
             <FiUserCheck style={{ marginRight: '8px', verticalAlign: 'middle' }} />
             Select Salespersons to Compare ({selected.length}/8)
           </h3>
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', flex: '1 1 160px', maxWidth: '220px' }}>
             <FiSearch style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ padding: '6px 12px 6px 32px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.85rem', width: '200px', outline: 'none' }}
+              style={{ width: '100%', padding: '6px 12px 6px 32px', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.85rem', outline: 'none' }}
             />
           </div>
         </div>
@@ -260,18 +260,18 @@ const Comparison = () => {
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)' }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>Performance Summary</h3>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="data-table">
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table className="data-table" style={{ minWidth: '600px' }}>
                 <thead>
                   <tr>
-                    <th>Salesperson</th>
-                    <th>Revenue</th>
-                    <th>Quantity</th>
-                    <th>Orders</th>
-                    <th>Avg Order</th>
-                    <th>Customers</th>
-                    <th>Cities</th>
-                    <th>States</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Salesperson</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Revenue</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Quantity</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Orders</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Avg Order</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Customers</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>Cities</th>
+                    <th style={{ whiteSpace: 'nowrap' }}>States</th>
                   </tr>
                 </thead>
                 <tbody>

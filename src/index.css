@@ -58,6 +58,11 @@ body {
 
 .page-header {
   margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 .page-header h1 {
   font-size: 1.75rem;
@@ -69,6 +74,33 @@ body {
   color: var(--text-secondary);
   margin-top: 4px;
   font-size: 0.9rem;
+}
+
+/* Global Search */
+.global-search-wrapper {
+  position: relative;
+  width: 300px;
+  flex-shrink: 1;
+}
+
+/* Page Controls (right side of page header) */
+.page-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Metric Toggle */
+.metric-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-light);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 /* KPI Cards Grid */
@@ -626,6 +658,23 @@ body {
   backdrop-filter: blur(2px);
 }
 
+/* Prevent horizontal overflow at all times */
+.page-content {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Page header title block must be able to shrink */
+.page-header > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.page-header > div:first-child p {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .charts-grid { grid-template-columns: minmax(0, 1fr) !important; }
@@ -633,29 +682,115 @@ body {
 }
 
 @media (max-width: 768px) {
+  /* Prevent page-level horizontal scroll */
+  body { overflow-x: hidden; }
+
+  /* Show mobile header */
   .mobile-header { display: flex; }
-  .main-content { margin-left: 0; padding: 80px 16px 20px; }
-  
+
+  .main-content {
+    margin-left: 0;
+    padding: 76px 14px 24px;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     z-index: 100;
   }
-  
-  .sidebar.open {
-    transform: translateX(0);
+  .sidebar.open { transform: translateX(0); }
+
+  /* Page header stacks vertically, title can shrink */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
-  
-  .kpi-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .page-header > div:first-child { flex: none; }
+  .page-header h1 { font-size: 1.35rem; }
+
+  /* Controls stack vertically, each child is full width */
+  .page-controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .page-controls > * { width: 100%; box-sizing: border-box; }
+
+  /* Search takes full width */
+  .global-search-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Export buttons row (inside ExportControls div) */
+  .page-controls > div { display: flex; gap: 8px; }
+  .page-controls > div button { flex: 1; justify-content: center; }
+
+  /* Metric toggle full width, both buttons equal */
+  .metric-toggle {
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 1;
+  }
+  .metric-toggle button {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    justify-content: center;
+    padding: 8px 8px !important;
+    font-size: 0.88rem;
+  }
+
+  /* KPI grid: 2 columns */
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
   .salesperson-grid { grid-template-columns: minmax(0, 1fr); }
   .salesperson-layout { grid-template-columns: minmax(0, 1fr); }
-  .page-header h1 { font-size: 1.5rem; }
+
+  /* Filter bar stacks */
   .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
-  .filter-bar select, .filter-bar input { width: 100%; min-width: auto; }
+  .filter-bar select, .filter-bar input { width: 100%; min-width: 0; }
+  .filter-bar button { width: 100%; }
+
+  /* Upload zone */
+  .upload-zone { padding: 32px 16px; }
+
+  /* Progress steps wrap */
+  .progress-steps { gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* Chart cards */
+  .chart-card { padding: 14px; }
+
+  /* Tables scroll horizontally */
+  .data-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table th, .data-table td { padding: 10px 12px; font-size: 0.82rem; white-space: nowrap; }
+
+  /* All wrappers with overflow-x: auto get touch scroll */
+  [style*="overflow"] { -webkit-overflow-scrolling: touch; }
 }
 
 @media (max-width: 480px) {
-  .main-content { padding: 80px 12px 20px; }
-  .result-cards { grid-template-columns: minmax(0, 1fr); }
+  .main-content { padding: 72px 10px 20px; }
+
+  .kpi-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .kpi-card { padding: 14px; }
+  .kpi-card .kpi-value { font-size: 1.3rem; }
+
+  .result-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+  .page-header h1 { font-size: 1.2rem; }
+
+  .upload-zone { padding: 24px 14px; }
+  .upload-zone .upload-icon { font-size: 2rem; }
+
+  .progress-step .step-circle { width: 32px; height: 32px; font-size: 0.78rem; }
+
+  .chart-card { padding: 10px; }
+  .chart-card h3 { font-size: 0.87rem; }
 }
 
