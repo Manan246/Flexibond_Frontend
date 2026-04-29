@@ -49,8 +49,10 @@ const DefaultRedirect = () => {
   if (perms.includes('products')) return <Navigate to="/products" replace />;
   if (perms.includes('salesperson')) return <Navigate to="/salesperson" replace />;
   if (perms.includes('comparison')) return <Navigate to="/comparison" replace />;
+  if (perms.includes('financials')) return <Navigate to="/financial" replace />;
+  if (perms.includes('channel')) return <Navigate to="/channel" replace />;
   if (perms.includes('upload')) return <Navigate to="/upload" replace />;
-  
+
   return <Navigate to="/no-access" replace />;
 };
 

@@ -20,13 +20,15 @@ const AdminPanel = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role, setRole] = useState('viewer');
-  const [permissions, setPermissions] = useState(['overview', 'products', 'salesperson', 'comparison', 'upload']);
+  const [permissions, setPermissions] = useState(['overview', 'products', 'salesperson', 'comparison', 'financials', 'channel', 'upload']);
 
   const availableModules = [
     { id: 'overview', label: 'Dashboard Overview' },
     { id: 'products', label: 'Product Analytics' },
     { id: 'salesperson', label: 'Salesperson Performance' },
     { id: 'comparison', label: 'Salesperson Comparison' },
+    { id: 'financials', label: 'Financials (Tax & GST)' },
+    { id: 'channel', label: 'Channel (B2B vs B2C)' },
     { id: 'upload', label: 'Data Upload Area' },
   ];
 
@@ -83,7 +85,7 @@ const AdminPanel = () => {
       setConfirmPassword('');
       setShowPassword(false);
       setRole('viewer');
-      setPermissions(['overview', 'products', 'salesperson', 'comparison', 'upload']);
+      setPermissions(['overview', 'products', 'salesperson', 'comparison', 'financials', 'channel', 'upload']);
       setIsEditMode(false);
       setEditingUserId(null);
       fetchUsers();
