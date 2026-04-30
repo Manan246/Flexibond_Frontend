@@ -227,25 +227,37 @@ const Upload = () => {
               <span>Classifying & Saving</span>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Live Log Terminal */}
-          <div style={{ marginTop: '24px', background: '#0f172a', borderRadius: '12px', padding: '16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', border: '1px solid #1e293b' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+      {/* Live Log Terminal - Shown during upload OR if logs exist */}
+      {(uploading || logs.length > 0) && (
+        <div style={{ marginTop: '24px', background: '#0f172a', borderRadius: '12px', padding: '16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', border: '1px solid #1e293b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff5f56' }}></div>
               <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ffbd2e' }}></div>
               <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27c93f' }}></div>
               <span style={{ color: '#94a3b8', fontSize: '0.75rem', marginLeft: '8px', fontFamily: 'monospace' }}>upload-log.cmd</span>
             </div>
-            <div style={{ height: '200px', overflowY: 'auto', fontFamily: '"Fira Code", monospace', fontSize: '0.85rem', color: '#e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {logs.length === 0 && <div style={{ color: '#64748b' }}>Waiting for server response...</div>}
-              {logs.map((log, i) => (
-                <div key={i} style={{ display: 'flex', gap: '10px' }}>
-                  <span style={{ color: '#475569', minWidth: '85px' }}>[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
-                  <span style={{ color: getLogColor(log.type) }}>{log.message}</span>
-                </div>
-              ))}
-              <div id="log-end"></div>
-            </div>
+            {!uploading && (
+              <button 
+                onClick={() => setLogs([])}
+                style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '0.7rem', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Clear & Close Logs
+              </button>
+            )}
+          </div>
+          <div style={{ height: '200px', overflowY: 'auto', fontFamily: '"Fira Code", monospace', fontSize: '0.85rem', color: '#e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {logs.length === 0 && <div style={{ color: '#64748b' }}>Initializing live log stream...</div>}
+            {logs.map((log, i) => (
+              <div key={i} style={{ display: 'flex', gap: '10px' }}>
+                <span style={{ color: '#475569', minWidth: '85px' }}>[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                <span style={{ color: getLogColor(log.type) }}>{log.message}</span>
+              </div>
+            ))}
+            <div id="log-end"></div>
           </div>
         </div>
       )}
