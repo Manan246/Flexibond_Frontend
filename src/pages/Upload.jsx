@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FiUploadCloud, FiFileText, FiCheckCircle, FiXCircle, FiTrash2, FiClock } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { uploadFile, getUploadHistory, deleteUpload, purgeAllData } from '../services/api';
+import { uploadFile, getUploadHistory, deleteUpload, purgeAllData, API_BASE_URL } from '../services/api';
 import NotificationPanel from '../components/NotificationPanel';
 
 const Upload = () => {
@@ -26,6 +26,8 @@ const Upload = () => {
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [logs, setLogs] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
 
   const fetchHistory = async () => {
     try {
@@ -95,33 +97,39 @@ const Upload = () => {
   const handleUpload = async () => {
     if (!file) return;
 
+    const newSessionId = `up_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    setSessionId(newSessionId);
+    setLogs([]);
+    setResult(null);
+
+    // Setup SSE connection for logs
+    const eventSource = new EventSource(`${API_BASE_URL}/upload/events/${newSessionId}`);
+    
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setLogs(prev => [...prev, data]);
+      
+      // Auto-scroll logic could be added here if needed
+    };
+
+    eventSource.onerror = () => {
+      eventSource.close();
+    };
+
     try {
       setUploading(true);
       setProgress(10);
       
       const res = await uploadFile(file, (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        // Uploading to server is max 50% of the visual progress, the rest is processing
         setProgress(Math.min(percentCompleted / 2, 50));
-      });
-
-      // Simulate processing time
-      let currProgress = 50;
-      const interval = setInterval(() => {
-        currProgress += 5;
-        if (currProgress >= 95) {
-          clearInterval(interval);
-        } else {
-          setProgress(currProgress);
-        }
-      }, 500);
+      }, newSessionId);
 
       if (res.data.success) {
-        clearInterval(interval);
         setProgress(100);
         setResult(res.data.result);
         toast.success(res.data.message);
-        setFile(null); // Clear file after success
+        setFile(null);
         fetchHistory();
       }
     } catch (err) {
@@ -134,6 +142,24 @@ const Upload = () => {
       toast.error(err.response?.data?.message || 'Upload failed');
     } finally {
       setUploading(false);
+      setTimeout(() => eventSource.close(), 2000); // Close after a short delay
+    }
+  };
+
+  useEffect(() => {
+    if (logs.length > 0) {
+      const el = document.getElementById('log-end');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
+
+  // Helper for log colors
+  const getLogColor = (type) => {
+    switch(type) {
+      case 'error': return '#ef4444';
+      case 'warning': return '#f59e0b';
+      case 'success': return '#10b981';
+      default: return '#94a3b8';
     }
   };
 
@@ -196,9 +222,29 @@ const Upload = () => {
               <div className="step-circle">2</div>
               <span>Parsing</span>
             </div>
-            <div className={`progress-step ${progress >= 80 ? 'done' : progress >= 50 ? 'active' : ''}`}>
+            <div className={`progress-step ${progress >= 100 ? 'done' : progress >= 50 ? 'active' : ''}`}>
               <div className="step-circle">3</div>
               <span>Classifying & Saving</span>
+            </div>
+          </div>
+
+          {/* Live Log Terminal */}
+          <div style={{ marginTop: '24px', background: '#0f172a', borderRadius: '12px', padding: '16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', border: '1px solid #1e293b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid #1e293b', paddingBottom: '8px' }}>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff5f56' }}></div>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ffbd2e' }}></div>
+              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27c93f' }}></div>
+              <span style={{ color: '#94a3b8', fontSize: '0.75rem', marginLeft: '8px', fontFamily: 'monospace' }}>upload-log.cmd</span>
+            </div>
+            <div style={{ height: '200px', overflowY: 'auto', fontFamily: '"Fira Code", monospace', fontSize: '0.85rem', color: '#e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {logs.length === 0 && <div style={{ color: '#64748b' }}>Waiting for server response...</div>}
+              {logs.map((log, i) => (
+                <div key={i} style={{ display: 'flex', gap: '10px' }}>
+                  <span style={{ color: '#475569', minWidth: '85px' }}>[{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                  <span style={{ color: getLogColor(log.type) }}>{log.message}</span>
+                </div>
+              ))}
+              <div id="log-end"></div>
             </div>
           </div>
         </div>

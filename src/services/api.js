@@ -12,6 +12,8 @@ const API_BASE = isLocalhost
     ? `http://${window.location.hostname}:5000/api`
     : 'https://flexibond-backend-vkc0.onrender.com/api';
 
+export const API_BASE_URL = API_BASE;
+
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 60000,
@@ -44,10 +46,10 @@ export const login = (username, password) =>
 export const getProfile = () => api.get('/auth/me');
 
 // Upload
-export const uploadFile = (file, onProgress) => {
+export const uploadFile = (file, onProgress, sessionId) => {
   const formData = new FormData();
   formData.append('file', file);
-  return api.post('/upload', formData, {
+  return api.post(`/upload${sessionId ? `?sessionId=${sessionId}` : ''}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: onProgress,
   });
