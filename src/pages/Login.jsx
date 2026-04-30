@@ -15,7 +15,7 @@ const Login = () => {
     // Check if already logged in
     const token = localStorage.getItem('flexibond_token');
     if (token) {
-      navigate('/dashboard');
+      navigate('/');
     }
   }, [navigate]);
 
@@ -44,6 +44,8 @@ const Login = () => {
           else if (perms.includes('products')) defaultRoute = '/products';
           else if (perms.includes('salesperson')) defaultRoute = '/salesperson';
           else if (perms.includes('comparison')) defaultRoute = '/comparison';
+          else if (perms.includes('financials')) defaultRoute = '/financial';
+          else if (perms.includes('channel')) defaultRoute = '/channel';
           else if (perms.includes('upload')) defaultRoute = '/upload';
           else defaultRoute = '/no-access';
         }
