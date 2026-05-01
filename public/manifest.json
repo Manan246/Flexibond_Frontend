@@ -3,12 +3,12 @@
   "name": "Flexibond Analytics Hub",
   "icons": [
     {
-      "src": "download.png",
+      "src": "icon-flex.png?v=2",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "favicon.svg",
+      "src": "icon-flex.svg?v=2",
       "sizes": "any",
       "type": "image/svg+xml"
     }
