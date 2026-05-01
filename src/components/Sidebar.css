@@ -6,14 +6,21 @@
   top: 0;
   left: 0;
   bottom: 0;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-lg);
   z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .sidebar-header {
   padding: 30px 24px 40px;
+  flex-shrink: 0;
 }
 
 .sidebar-header h2 {
@@ -68,7 +75,10 @@
 
 .sidebar-footer {
   padding: 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--navy-800);
+  background: var(--navy-900);
+  flex-shrink: 0;
 }
 
 .user-info {

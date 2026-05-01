@@ -753,11 +753,11 @@ body {
   }
 
   .sidebar {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
     transition: transform 0.3s ease;
     z-index: 100;
   }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar.open { transform: translate3d(0, 0, 0); }
 
   /* Page header stacks vertically, title can shrink */
   .page-header {

@@ -9,10 +9,7 @@ const Sidebar = ({ isOpen, onClose, user: propUser }) => {
   const localUser = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const user = propUser || localUser;
 
-  const handleLogout = async () => {
-    try {
-      const { adminGetLogs } = await import('../services/api'); // optional logging
-    } catch {}
+  const handleLogout = () => {
     localStorage.removeItem('flexibond_token');
     localStorage.removeItem('flexibond_user');
     if (onClose) onClose();
