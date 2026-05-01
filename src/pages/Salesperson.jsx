@@ -102,7 +102,7 @@ const Salesperson = () => {
           <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-light)' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Leaderboard</h3>
           </div>
-          <div style={{ overflowY: 'auto', flex: 1, padding: '12px' }}>
+          <div className="sp-list-scroll-area">
             {list.map((sp, idx) => (
               <div 
                 key={sp._id} 

@@ -660,6 +660,11 @@ body {
   flex-direction: column;
   height: calc(100vh - 140px);
 }
+.sp-list-scroll-area {
+  overflow-y: auto;
+  flex: 1;
+  padding: 12px;
+}
 
 .salesperson-details-container {
   overflow-y: auto;
@@ -684,6 +689,12 @@ body {
   }
   .salesperson-list-container {
     order: 2;
+    margin-top: 24px; /* Add some space when stacked */
+  }
+  .sp-list-scroll-area {
+    overflow-y: visible;
+    height: auto;
+    padding: 12px 0;
   }
 }
 
