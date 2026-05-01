@@ -237,14 +237,48 @@ const Channel = () => {
       {/* Revenue Share + Trend */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
         <ChartCard title="Revenue Channel Split" aiContext={summary} aiType="B2B vs B2C Revenue Share">
-          <Doughnut data={doughnutData} options={{
-            maintainAspectRatio: false,
-            cutout: '60%',
-            plugins: {
-              legend: { position: 'bottom', labels: { boxWidth: 14, padding: 16 } },
-              tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
-            }
-          }} />
+          <div style={{ display: 'flex', alignItems: 'center', height: '240px', gap: '20px' }}>
+            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+              <Doughnut data={doughnutData} options={{
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+                }
+              }} />
+            </div>
+            <div 
+              style={{ 
+                flex: '0 0 160px', 
+                fontSize: '0.9rem',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                overflowY: 'auto',
+                maxHeight: '100%',
+                msOverflowStyle: 'thin',
+                scrollbarWidth: 'thin'
+              }}
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {doughnutData.labels.map((label, i) => {
+                const val = doughnutData.datasets[0].data[i];
+                const total = doughnutData.datasets[0].data.reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: doughnutData.datasets[0].backgroundColor[i] }} />
+                      <span style={{ fontWeight: 500 }}>{label.split(' ')[0]}</span>
+                    </div>
+                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </ChartCard>
 
         <ChartCard

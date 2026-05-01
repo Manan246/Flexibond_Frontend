@@ -189,7 +189,54 @@ body {
   padding: 24px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
+  height: 100%; /* Ensure it fills container */
 }
+
+/* Flip Card Styles */
+.flip-card {
+  background-color: transparent;
+  width: 100%;
+  height: 450px; /* Increased default height */
+  perspective: 1000px;
+}
+
+.flip-card.full-width {
+  grid-column: 1 / -1;
+  height: 500px; /* Taller for full-width charts like Revenue Trend */
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card.is-flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.flip-card-back {
+  background-color: var(--bg-card);
+  transform: rotateY(180deg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
 .chart-card.full-width {
   grid-column: 1 / -1;
 }
@@ -802,4 +849,25 @@ body {
   .chart-card { padding: 10px; }
   .chart-card h3 { font-size: 0.87rem; }
 }
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure scrollable areas respond to mouse wheel correctly */
+[style*="overflow-y: auto"] {
+  overscroll-behavior-y: contain;
+}
+
 

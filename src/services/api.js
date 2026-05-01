@@ -34,7 +34,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('flexibond_token');
-      window.location.href = '/login';
+      // Only redirect if not already on login page to avoid clearing error toasts
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

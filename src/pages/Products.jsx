@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { FiBox, FiLayers, FiGrid, FiDroplet } from 'react-icons/fi';
+import { FiBox, FiLayers, FiGrid, FiDroplet, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import KPICard from '../components/KPICard';
 import ChartCard from '../components/ChartCard';
 import FilterBar from '../components/FilterBar';
@@ -20,6 +20,7 @@ const Products = () => {
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState('revenue');
+  const [sortOrder, setSortOrder] = useState(-1); // -1 for Top, 1 for Bottom
   const [filters, setFilters] = useState({ 
     startDate: '', endDate: '', salesperson: '', category: '', state: '',
     product: '', thickness: '', dimensions: '' 
@@ -38,7 +39,7 @@ const Products = () => {
       setLoading(true);
       const sortBy = metric === 'revenue' ? 'totalAmount' : 'totalQty';
       const [productsRes, catRes, colourRes, sizeRes, filtersRes] = await Promise.all([
-        getTopProducts({ ...filters, limit: 15, sortBy }),
+        getTopProducts({ ...filters, limit: 15, sortBy, sortOrder }),
         getCategoryBreakdown({ ...filters, sortBy }),
         getColourAnalysis({ ...filters, limit: 15, sortBy }),
         getSizeAnalysis({ ...filters, sortBy }),
@@ -60,7 +61,7 @@ const Products = () => {
     }
   };
 
-  useEffect(() => { fetchData(); }, [filters, metric]);
+  useEffect(() => { fetchData(); }, [filters, metric, sortOrder]);
 
   const handleFilterChange = (newFilters, clear = false) => {
     if (clear) {
@@ -171,9 +172,9 @@ const Products = () => {
       {data.products && (
         <div style={{ marginBottom: '24px' }}>
           <AIInsightButton 
-            contextData={{ totalProducts, totalCategories, totalColours, topProduct: topProduct?._id }} 
+            contextData={{ totalProducts, totalCategories, totalColours, topProduct: topProduct?._id, sortOrder: sortOrder === -1 ? 'Top' : 'Bottom' }} 
             contextType="Products Dashboard Overview" 
-            title="Generate AI Product Summary" 
+            title={`Generate AI ${sortOrder === -1 ? 'Top' : 'Bottom'} Products Summary`} 
             isBanner={true} 
           />
         </div>
@@ -187,7 +188,35 @@ const Products = () => {
       </div>
 
       <div className="charts-grid">
-        <ChartCard title={`Top Products (${metricLabel})`} aiContext={data.products} aiType="Top Products" fullWidth>
+        <ChartCard 
+          title={`${sortOrder === -1 ? 'Top' : 'Bottom'} Products (${metricLabel})`} 
+          aiContext={data.products} 
+          aiType={`${sortOrder === -1 ? 'Top' : 'Bottom'} Products`} 
+          fullWidth
+          extra={
+            <button 
+              onClick={() => setSortOrder(sortOrder === -1 ? 1 : -1)}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: '1px solid var(--border-color)',
+                background: '#fff',
+                color: sortOrder === -1 ? 'var(--primary-600)' : '#f59e0b',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {sortOrder === -1 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
+              {sortOrder === -1 ? 'Top 15' : 'Bottom 15'}
+            </button>
+          }
+        >
           <Bar
             data={productsChartData}
             options={{
@@ -210,14 +239,63 @@ const Products = () => {
         </ChartCard>
 
         <ChartCard title="Category Breakdown" aiContext={data.categories} aiType="Product Categories">
-          <Doughnut
-            data={catChartData}
-            options={{
-              maintainAspectRatio: false,
-              cutout: '70%',
-              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
-            }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', height: '320px', gap: '20px' }}>
+            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+              <Doughnut
+                data={catChartData}
+                options={{
+                  maintainAspectRatio: false,
+                  cutout: '70%',
+                  plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          const label = context.label || '';
+                          const value = context.raw || 0;
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                          return ` ${label}: ${metric === 'revenue' ? formatCurrency(value) : formatNumber(value)} (${percentage}%)`;
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+            <div 
+              style={{ 
+                flex: '0 0 240px', 
+                maxHeight: '100%', 
+                overflowY: 'auto', 
+                paddingRight: '12px',
+                fontSize: '0.8rem',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                msOverflowStyle: 'thin',
+                scrollbarWidth: 'thin'
+              }}
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {data.categories?.map((cat, i) => {
+                const val = metric === 'revenue' ? cat.totalAmount : cat.totalQty;
+                const total = data.categories.reduce((acc, c) => acc + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                const color = catChartData.datasets[0].backgroundColor[i % catChartData.datasets[0].backgroundColor.length];
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-color)', borderBottomStyle: 'dashed' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, flexShrink: 0 }} />
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500 }}>{cat._id || 'Unknown'}</span>
+                    </div>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', marginLeft: '8px' }}>{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </ChartCard>
 
         <ChartCard title={`Colour Breakdown (${metricLabel})`} aiContext={data.colours} aiType="Color Variants Breakdown">

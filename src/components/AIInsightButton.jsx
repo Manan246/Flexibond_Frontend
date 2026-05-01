@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FiZap, FiX, FiRefreshCw } from 'react-icons/fi';
 import { getAIInsights } from '../services/api';
+import { renderInsightsText } from '../utils/aiUtils.jsx';
 
-const AIInsightButton = ({ contextData, contextType, title = 'Generate Insights', isBanner = false }) => {
+const AIInsightButton = ({ contextData, contextType, title = 'Generate Insights', isBanner = false, onToggle }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState(null);
@@ -14,7 +15,11 @@ const AIInsightButton = ({ contextData, contextType, title = 'Generate Insights'
       setError(null);
       const res = await getAIInsights(contextData, contextType);
       setInsights(res.data.data);
-      setIsOpen(true);
+      if (onToggle) {
+        onToggle(true, res.data.data);
+      } else {
+        setIsOpen(true);
+      }
     } catch (err) {
       setError('Failed to fetch AI insights. Please try again.');
       console.error(err);
@@ -23,52 +28,20 @@ const AIInsightButton = ({ contextData, contextType, title = 'Generate Insights'
     }
   };
 
-  const handleToggle = () => {
+  const handleToggle = (e) => {
+    if (e) e.stopPropagation();
+    if (onToggle && insights) {
+      onToggle(!isOpen, insights);
+      setIsOpen(!isOpen);
+      return;
+    }
+    
     if (!isOpen && !insights) {
       fetchInsights();
     } else {
       setIsOpen(!isOpen);
+      if (onToggle) onToggle(!isOpen, insights);
     }
-  };
-
-  // Parse **keyword** into colored bold spans
-  const parseInline = (text, isRecommendation = false) => {
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        const word = part.slice(2, -2);
-        return (
-          <strong key={i} style={{ color: isRecommendation ? '#0369a1' : '#0f766e', fontWeight: 700 }}>
-            {word}
-          </strong>
-        );
-      }
-      return part;
-    });
-  };
-
-  const renderInsightsText = (text) => {
-    if (!text) return null;
-    const lines = text.split('\n').filter(l => l.trim());
-    return lines.map((line, i) => {
-      const clean = line.replace(/^[-•*]\s*/, '').trim();
-      if (!clean) return null;
-      const isRec = clean.toLowerCase().startsWith('recommendation:');
-      if (isRec) {
-        const afterLabel = clean.replace(/^recommendation:\s*/i, '');
-        return (
-          <li key={i} style={{ marginBottom: '8px', listStyle: 'none', paddingLeft: 0 }}>
-            <span style={{ fontWeight: 700, color: '#0369a1' }}>Recommendation: </span>
-            <span>{parseInline(afterLabel, true)}</span>
-          </li>
-        );
-      }
-      return (
-        <li key={i} style={{ marginBottom: '8px' }}>
-          {parseInline(clean)}
-        </li>
-      );
-    });
   };
 
   if (isBanner) {
@@ -134,7 +107,7 @@ const AIInsightButton = ({ contextData, contextType, title = 'Generate Insights'
         <FiZap className={loading ? 'spin-pulse' : ''} size={16} />
       </button>
 
-      {isOpen && (
+      {isOpen && !onToggle && (
         <div style={{
           position: 'absolute',
           top: '100%',

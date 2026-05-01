@@ -286,14 +286,62 @@ const Dashboard = () => {
         </ChartCard>
 
         <ChartCard title={`Salesperson ${metricLabel}`} aiContext={data.salespersons} aiType="Salesperson Performance">
-          <Doughnut 
-            data={spChartData} 
-            options={{ 
-              maintainAspectRatio: false,
-              cutout: '70%',
-              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
-            }} 
-          />
+          <div style={{ display: 'flex', alignItems: 'center', height: '300px', gap: '20px' }}>
+            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+              <Doughnut 
+                data={spChartData} 
+                options={{ 
+                  maintainAspectRatio: false,
+                  cutout: '70%',
+                  plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) => {
+                          const val = ctx.raw || 0;
+                          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                          const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                          return ` ${ctx.label}: ${metric === 'revenue' ? formatCurrency(val) : formatNumber(val)} (${pct}%)`;
+                        }
+                      }
+                    }
+                  }
+                }} 
+              />
+            </div>
+            <div 
+              style={{ 
+                flex: '0 0 200px', 
+                maxHeight: '100%', 
+                overflowY: 'auto', 
+                paddingRight: '10px',
+                fontSize: '0.85rem',
+                color: 'var(--text-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                msOverflowStyle: 'thin',
+                scrollbarWidth: 'thin'
+              }}
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {spChartData.labels.map((label, i) => {
+                const val = spChartData.datasets[0].data[i];
+                const total = spChartData.datasets[0].data.reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                const color = spChartData.datasets[0].backgroundColor[i % spChartData.datasets[0].backgroundColor.length];
+                return (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: color, flexShrink: 0 }} />
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                    </div>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </ChartCard>
 
         <ChartCard title={`${metricLabel} by State`} aiContext={data.geo} aiType="Geographic Breakdown">
