@@ -1,0 +1,20 @@
+{
+  "short_name": "Flexibond",
+  "name": "Flexibond Analytics Hub",
+  "icons": [
+    {
+      "src": "download.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0a1628",
+  "background_color": "#0a1628"
+}
