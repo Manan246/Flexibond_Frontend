@@ -271,12 +271,14 @@ body {
   background: #fff;
   transition: var(--transition);
   min-width: 140px;
+  height: 42px; /* Standardize height to prevent oversized boxes on mobile */
 }
 
 .filter-bar input[name="startDate"],
 .filter-bar input[name="endDate"] {
   width: 150px;
-  flex: 0 0 150px;
+  height: 42px;
+  flex: none;
 }
 .filter-bar select:focus,
 .filter-bar input:focus {
@@ -285,10 +287,8 @@ body {
   box-shadow: 0 0 0 3px var(--primary-100);
 }
 
-/* Fix for date input placeholder on mobile */
-.filter-bar input[type="date"] {
+.filter-bar input {
   position: relative;
-  min-height: 38px;
 }
 
 .filter-bar input[type="date"]::-webkit-calendar-picker-indicator {
@@ -832,13 +832,15 @@ body {
   /* Filter bar stacks */
   .filter-bar {
     flex-direction: column;
+    align-items: stretch; /* Ensure items fill the width */
     padding: 12px;
     gap: 8px;
   }
   .filter-bar select,
   .filter-bar input {
-    width: 100%;
+    width: 100% !important; /* Force full width on mobile */
     min-width: 0;
+    flex: none;
   }
   .filter-bar button {
     width: 100%;

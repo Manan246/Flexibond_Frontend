@@ -11,6 +11,7 @@ const FilterBar = ({ filters, options, onFilterChange }) => {
         onFocus={(e) => (e.target.type = "date")}
         onBlur={(e) => !e.target.value && (e.target.type = "text")}
         placeholder="Start Date"
+        style={{ height: '42px' }}
       />
       <input
         type={filters.endDate ? "date" : "text"}
@@ -20,6 +21,7 @@ const FilterBar = ({ filters, options, onFilterChange }) => {
         onFocus={(e) => (e.target.type = "date")}
         onBlur={(e) => !e.target.value && (e.target.type = "text")}
         placeholder="End Date"
+        style={{ height: '42px' }}
       />
       
       {options?.salespersons && options.salespersons.length > 0 && (
