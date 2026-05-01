@@ -4,17 +4,21 @@ const FilterBar = ({ filters, options, onFilterChange }) => {
   return (
     <div className="filter-bar">
       <input
-        type="date"
+        type={filters.startDate ? "date" : "text"}
         name="startDate"
         value={filters.startDate || ''}
         onChange={(e) => onFilterChange({ startDate: e.target.value })}
+        onFocus={(e) => (e.target.type = "date")}
+        onBlur={(e) => !e.target.value && (e.target.type = "text")}
         placeholder="Start Date"
       />
       <input
-        type="date"
+        type={filters.endDate ? "date" : "text"}
         name="endDate"
         value={filters.endDate || ''}
         onChange={(e) => onFilterChange({ endDate: e.target.value })}
+        onFocus={(e) => (e.target.type = "date")}
+        onBlur={(e) => !e.target.value && (e.target.type = "text")}
         placeholder="End Date"
       />
       
