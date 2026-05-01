@@ -29,7 +29,7 @@ const Financial = () => {
   const [invoiceTotal, setInvoiceTotal] = useState(0);
   const [invoiceTotalPages, setInvoiceTotalPages] = useState(1);
   const [tableSearch, setTableSearch] = useState('');
-  const [trendGroupBy, setTrendGroupBy] = useState('month');
+  const [trendGroupBy, setTrendGroupBy] = useState('day');
   const searchDebounceRef = useRef(null);
 
   const [loading, setLoading] = useState(true);

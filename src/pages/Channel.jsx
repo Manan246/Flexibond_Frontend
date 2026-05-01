@@ -25,7 +25,7 @@ const Channel = () => {
   const [stateData, setStateData] = useState([]);
   const [products, setProducts] = useState({ b2b: [], b2c: [] });
   const [categories, setCategories] = useState([]);
-  const [trendGroupBy, setTrendGroupBy] = useState('month');
+  const [trendGroupBy, setTrendGroupBy] = useState('day');
   const [custTab, setCustTab] = useState('b2b');
   const [loading, setLoading] = useState(true);
 

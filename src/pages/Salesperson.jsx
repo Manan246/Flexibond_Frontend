@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getSalespersonList, getSalespersonPerformance } from '../services/api';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import ChartCard from '../components/ChartCard';
-import { FiUsers, FiDollarSign, FiShoppingCart, FiMapPin } from 'react-icons/fi';
+import { FiUsers, FiDollarSign, FiShoppingCart, FiMapPin, FiTrendingUp } from 'react-icons/fi';
 import AIInsightButton from '../components/AIInsightButton';
 import ExportControls from '../components/ExportControls';
 import GlobalSearch from '../components/GlobalSearch';
@@ -16,10 +16,17 @@ const Salesperson = () => {
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [metric, setMetric] = useState('revenue');
+  const [trendGroupBy, setTrendGroupBy] = useState('day');
 
   useEffect(() => {
     fetchList();
   }, [metric]);
+
+  useEffect(() => {
+    if (selectedSP) {
+      handleSelectSP(selectedSP);
+    }
+  }, [trendGroupBy]);
 
   const fetchList = async () => {
     try {
@@ -40,7 +47,10 @@ const Salesperson = () => {
     try {
       setSelectedSP(name);
       setDetailsLoading(true);
-      const res = await getSalespersonPerformance(name, { sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' });
+      const res = await getSalespersonPerformance(name, { 
+        sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty',
+        groupBy: trendGroupBy 
+      });
       setDetails(res.data.data);
     } catch (err) {
       console.error(err);
@@ -164,6 +174,64 @@ const Salesperson = () => {
 
               {/* Charts */}
               <div className="charts-grid">
+                {/* Revenue Trend Chart */}
+                <ChartCard 
+                  title={`${metric === 'revenue' ? 'Revenue' : 'Quantity'} Trend`} 
+                  aiContext={details.revenueTrend}
+                  aiType={`Performance Trend for ${selectedSP}`}
+                  fullWidth 
+                  extra={
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        onClick={() => setTrendGroupBy('day')} 
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.85rem',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-color)',
+                          backgroundColor: trendGroupBy === 'day' ? 'var(--primary-600)' : 'var(--bg-card)',
+                          color: trendGroupBy === 'day' ? '#fff' : 'var(--text-primary)',
+                          cursor: 'pointer',
+                          fontWeight: 500
+                        }}
+                      >
+                        Days
+                      </button>
+                      <button 
+                        onClick={() => setTrendGroupBy('month')} 
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.85rem',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-color)',
+                          backgroundColor: trendGroupBy === 'month' ? 'var(--primary-600)' : 'var(--bg-card)',
+                          color: trendGroupBy === 'month' ? '#fff' : 'var(--text-primary)',
+                          cursor: 'pointer',
+                          fontWeight: 500
+                        }}
+                      >
+                        Months
+                      </button>
+                    </div>
+                  }
+                >
+                  <Line 
+                    data={{
+                      labels: details.revenueTrend.map(d => d._id),
+                      datasets: [{
+                        label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+                        data: details.revenueTrend.map(d => metric === 'revenue' ? d.revenue : d.qty),
+                        borderColor: 'var(--primary-500)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                      }]
+                    }} 
+                    options={{ maintainAspectRatio: false }} 
+                  />
+                </ChartCard>
+
                 <ChartCard title="Top Products Sold" aiContext={details.topProducts} aiType={`Products Sold by ${selectedSP}`}>
                   <Bar 
                     data={{
@@ -191,6 +259,55 @@ const Salesperson = () => {
                       }
                     }}
                   />
+                </ChartCard>
+
+                <ChartCard title="Category Breakdown" aiContext={details.categoryBreakdown} aiType={`Category Performance for ${selectedSP}`}>
+                  <div style={{ display: 'flex', alignItems: 'center', height: '300px', gap: '20px' }}>
+                    <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+                      <Doughnut 
+                        data={{
+                          labels: details.categoryBreakdown.map(c => c._id),
+                          datasets: [{
+                            label: metric === 'revenue' ? 'Revenue' : 'Quantity',
+                            data: details.categoryBreakdown.map(c => metric === 'revenue' ? c.totalAmount : c.totalQty),
+                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'],
+                            borderWidth: 0,
+                            cutout: '70%'
+                          }]
+                        }}
+                        options={{ 
+                          maintainAspectRatio: false, 
+                          plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                              callbacks: {
+                                label: (ctx) => {
+                                  const val = ctx.raw;
+                                  return metric === 'revenue' ? formatCurrency(val) : `${val} units`;
+                                }
+                              }
+                            }
+                          } 
+                        }}
+                      />
+                    </div>
+                    <div className="custom-legend" onWheel={(e) => e.stopPropagation()} style={{ flex: '0 0 150px', maxHeight: '100%', overflowY: 'auto', paddingRight: '10px' }}>
+                      {details.categoryBreakdown.map((item, idx) => {
+                        const total = details.categoryBreakdown.reduce((sum, c) => sum + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
+                        const percentage = ((metric === 'revenue' ? item.totalAmount : item.totalQty) / total * 100).toFixed(1);
+                        const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
+                        return (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors[idx % colors.length], flexShrink: 0 }} />
+                              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item._id}</span>
+                            </div>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)', marginLeft: '8px' }}>{percentage}%</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </ChartCard>
 
                 <ChartCard title="City Breakdown" aiContext={details.cityBreakdown} aiType={`Sales Breakdown by City for ${selectedSP}`}>
