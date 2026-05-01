@@ -4,8 +4,13 @@
   "icons": [
     {
       "src": "download.png",
-      "sizes": "192x192 512x512",
+      "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ],
   "start_url": "/",
