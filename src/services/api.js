@@ -2,7 +2,8 @@ import axios from 'axios';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 // --- Device Fingerprinting ---
-let deviceId = localStorage.getItem('flexibond_device_id');
+let deviceId = localStorage.getItem('flexibond_device_id') || null;
+let fingerprintPromise = null;
 
 const generateFallbackId = () => {
   const randomStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -11,31 +12,42 @@ const generateFallbackId = () => {
 };
 
 const initFingerprint = async () => {
-  // If we already have one, we are good
-  if (deviceId && deviceId.length > 5) return;
+  // If already calculated, return it
+  if (deviceId && deviceId.length > 5) return deviceId;
+  
+  // If already in progress, wait for that one
+  if (fingerprintPromise) return fingerprintPromise;
 
-  try {
-    const fpPromise = FingerprintJS.load();
-    const fp = await fpPromise;
-    const result = await fp.get();
-    
-    if (result && result.visitorId) {
-      deviceId = result.visitorId;
-    } else {
-      // Fallback if result is empty
+  fingerprintPromise = (async () => {
+    try {
+      const fpPromise = FingerprintJS.load();
+      const fp = await fpPromise;
+      const result = await fp.get();
+      
+      if (result && result.visitorId) {
+        deviceId = result.visitorId;
+      } else {
+        deviceId = generateFallbackId();
+      }
+    } catch (err) {
+      console.warn('Fingerprint failed, using fallback:', err);
       deviceId = generateFallbackId();
     }
-  } catch (err) {
-    console.error('Fingerprint error, using fallback:', err);
-    deviceId = generateFallbackId();
-  }
 
-  if (deviceId) {
-    localStorage.setItem('flexibond_device_id', deviceId);
-  }
+    try {
+      localStorage.setItem('flexibond_device_id', deviceId);
+    } catch (e) {
+      // iOS Private Mode or full storage - just keep it in memory
+      console.warn('LocalStorage blocked, ID will persist for session only');
+    }
+    
+    return deviceId;
+  })();
+
+  return fingerprintPromise;
 };
 
-// Initial trigger
+// Initial trigger - don't await here, we'll await in interceptor
 initFingerprint();
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -64,14 +76,11 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   
-  // Ensure deviceId is ready
-  if (!deviceId) {
-    await initFingerprint();
-  }
+  // Ensure deviceId is ready - critical for iOS/Safari reliability
+  const currentId = await initFingerprint();
 
-  // Always send device ID for authorization
-  if (deviceId) {
-    config.headers['x-device-id'] = deviceId;
+  if (currentId) {
+    config.headers['x-device-id'] = currentId;
   }
   return config;
 });
