@@ -38,11 +38,17 @@ const api = axios.create({
 });
 
 // Attach JWT token to every request
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('flexibond_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Ensure deviceId is ready
+  if (!deviceId) {
+    await initFingerprint();
+  }
+
   // Always send device ID for authorization
   if (deviceId) {
     config.headers['x-device-id'] = deviceId;
