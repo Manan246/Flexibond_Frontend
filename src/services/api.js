@@ -3,19 +3,39 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 // --- Device Fingerprinting ---
 let deviceId = localStorage.getItem('flexibond_device_id');
+
+const generateFallbackId = () => {
+  const randomStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const timestamp = Date.now().toString(36);
+  return `fb-${timestamp}-${randomStr}`;
+};
+
 const initFingerprint = async () => {
-  if (!deviceId) {
-    try {
-      const fpPromise = FingerprintJS.load();
-      const fp = await fpPromise;
-      const result = await fp.get();
+  // If we already have one, we are good
+  if (deviceId && deviceId.length > 5) return;
+
+  try {
+    const fpPromise = FingerprintJS.load();
+    const fp = await fpPromise;
+    const result = await fp.get();
+    
+    if (result && result.visitorId) {
       deviceId = result.visitorId;
-      localStorage.setItem('flexibond_device_id', deviceId);
-    } catch (err) {
-      console.error('Fingerprint error:', err);
+    } else {
+      // Fallback if result is empty
+      deviceId = generateFallbackId();
     }
+  } catch (err) {
+    console.error('Fingerprint error, using fallback:', err);
+    deviceId = generateFallbackId();
+  }
+
+  if (deviceId) {
+    localStorage.setItem('flexibond_device_id', deviceId);
   }
 };
+
+// Initial trigger
 initFingerprint();
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
