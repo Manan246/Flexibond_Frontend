@@ -240,6 +240,37 @@ body {
 .chart-card.full-width {
   grid-column: 1 / -1;
 }
+
+/* Export Mode Fixes: 'What You See Is What You Get' Capture */
+/* This ensures whatever the user is currently looking at (Chart OR AI) is rendered flat and readable */
+
+/* 1. Reset all inner transforms during export */
+body.is-exporting .flip-card-inner {
+  transform: none !important;
+  transform-style: flat !important;
+  transition: none !important;
+}
+
+/* 2. For cards currently showing CHARTS (not flipped) */
+body.is-exporting .flip-card:not(.is-flipped) .flip-card-back {
+  display: none !important;
+}
+body.is-exporting .flip-card:not(.is-flipped) .flip-card-front {
+  position: relative !important;
+  backface-visibility: visible !important;
+  display: block !important;
+}
+
+/* 3. For cards currently showing AI INSIGHTS (is-flipped) */
+body.is-exporting .flip-card.is-flipped .flip-card-front {
+  display: none !important;
+}
+body.is-exporting .flip-card.is-flipped .flip-card-back {
+  position: relative !important;
+  transform: none !important; /* Remove the 180deg rotation so it's readable */
+  backface-visibility: visible !important;
+  display: block !important;
+}
 .chart-card h3 {
   font-size: 0.95rem;
   font-weight: 600;

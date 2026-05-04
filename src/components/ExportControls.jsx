@@ -15,6 +15,7 @@ const ExportControls = ({ pageTitle = 'Dashboard' }) => {
       }
 
       // Hide toggle buttons / non-printable actions temporarily
+      document.body.classList.add('is-exporting');
       const toggleBars = document.querySelectorAll('.metric-toggle, .filter-bar, .ai-insights-btn, button');
       toggleBars.forEach(el => el.style.visibility = 'hidden');
 
@@ -27,6 +28,7 @@ const ExportControls = ({ pageTitle = 'Dashboard' }) => {
         });
 
         // Restore UI
+        document.body.classList.remove('is-exporting');
         toggleBars.forEach(el => el.style.visibility = 'visible');
 
         const image = canvas.toDataURL('image/png');
@@ -45,6 +47,7 @@ const ExportControls = ({ pageTitle = 'Dashboard' }) => {
         });
 
         // Restore UI
+        document.body.classList.remove('is-exporting');
         toggleBars.forEach(el => el.style.visibility = 'visible');
 
         const imgData = canvas.toDataURL('image/png');
