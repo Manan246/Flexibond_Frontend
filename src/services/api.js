@@ -1,4 +1,22 @@
 import axios from 'axios';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
+
+// --- Device Fingerprinting ---
+let deviceId = localStorage.getItem('flexibond_device_id');
+const initFingerprint = async () => {
+  if (!deviceId) {
+    try {
+      const fpPromise = FingerprintJS.load();
+      const fp = await fpPromise;
+      const result = await fp.get();
+      deviceId = result.visitorId;
+      localStorage.setItem('flexibond_device_id', deviceId);
+    } catch (err) {
+      console.error('Fingerprint error:', err);
+    }
+  }
+};
+initFingerprint();
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const isLAN = window.location.hostname.startsWith('192.168.') || 
@@ -25,28 +43,94 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Always send device ID for authorization
+  if (deviceId) {
+    config.headers['x-device-id'] = deviceId;
+  }
   return config;
 });
 
-// Handle 401 errors globally
+// Handle 401/403 errors globally
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('flexibond_token');
-      // Only redirect if not already on login page to avoid clearing error toasts
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     }
+    
+    // Check for Device Revocation
+    if (error.response && error.response.status === 403 && error.response.data?.message === 'DEVICE_UNAUTHORIZED') {
+      localStorage.removeItem('flexibond_token');
+      localStorage.removeItem('flexibond_user');
+      toast.error('Access revoked for this device. Please contact Admin.');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
 
 // Auth
-export const login = (username, password) =>
-  api.post('/auth/login', { username, password });
+export const login = (username, password, nickname) => {
+  // Use nickname if provided, otherwise auto-detect
+  let deviceName = nickname;
+  if (!deviceName) {
+    const ua = navigator.userAgent;
+    let os = 'Unknown OS';
+    if (ua.indexOf('Win') !== -1) os = 'Windows PC';
+    if (ua.indexOf('Mac') !== -1) os = 'Mac';
+    if (ua.indexOf('X11') !== -1) os = 'Linux';
+    if (ua.indexOf('Android') !== -1) os = 'Android';
+    if (ua.indexOf('iPhone') !== -1) os = 'iPhone';
+
+    let browser = 'Browser';
+    if (ua.indexOf('Chrome') !== -1) browser = 'Chrome';
+    else if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
+    else if (ua.indexOf('Safari') !== -1) browser = 'Safari';
+    else if (ua.indexOf('Edge') !== -1) browser = 'Edge';
+    
+    deviceName = `${os} (${browser})`;
+  } else {
+    // If nickname is provided, combine it with auto-detection for maximum info
+    const ua = navigator.userAgent;
+    let os = 'Unknown OS';
+    if (ua.indexOf('Win') !== -1) os = 'Windows PC';
+    if (ua.indexOf('Mac') !== -1) os = 'Mac';
+    if (ua.indexOf('X11') !== -1) os = 'Linux';
+    if (ua.indexOf('Android') !== -1) os = 'Android';
+    if (ua.indexOf('iPhone') !== -1) os = 'iPhone';
+
+    let browser = 'Browser';
+    if (ua.indexOf('Chrome') !== -1) browser = 'Chrome';
+    else if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
+    else if (ua.indexOf('Safari') !== -1) browser = 'Safari';
+    else if (ua.indexOf('Edge') !== -1) browser = 'Edge';
+    
+    deviceName = `${os} (${browser}) [${nickname}]`;
+  }
+
+  return api.post('/auth/login', { username, password }, {
+    headers: { 'x-device-name': deviceName }
+  });
+};
+export const verify2FA = (token, tempToken) => api.post('/auth/verify-2fa', { token, tempToken });
 export const getProfile = () => api.get('/auth/me');
+
+// 2FA Management
+export const setup2FA = () => api.post('/auth/2fa/setup');
+export const activate2FA = (token) => api.post('/auth/2fa/activate', { token });
+export const disable2FA = () => api.post('/auth/2fa/disable');
+
+// Device Management
+export const getAllDevices = () => api.get('/auth/devices');
+export const getPendingDevices = () => api.get('/auth/devices/pending');
+export const approveDevice = (id) => api.post(`/auth/devices/${id}/approve`);
+export const revokeDevice = (id) => api.delete(`/auth/devices/${id}`);
 
 // Upload
 export const uploadFile = (file, onProgress, sessionId) => {
@@ -102,6 +186,7 @@ export const adminGetUsers = () => api.get('/auth/users');
 export const adminCreateUser = (userData) => api.post('/auth/users', userData);
 export const adminUpdateUser = (userId, userData) => api.put(`/auth/users/${userId}`, userData);
 export const adminDeleteUser = (userId) => api.delete(`/auth/users/${userId}`);
+export const adminReset2FA = (userId) => api.post(`/auth/users/${userId}/disable-2fa`);
 export const adminGetLogs = () => api.get('/auth/logs');
 
 export default api;

@@ -541,17 +541,39 @@ body {
   margin-bottom: 16px;
 }
 
-/* Loading Spinner */
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 0.6s linear infinite;
+/* Donut Chart Responsive Container */
+.donut-container {
+  display: flex;
+  align-items: center;
+  height: 300px;
+  gap: 20px;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 600px) {
+  .flip-card {
+    height: 580px !important; /* Taller card for more legends */
+  }
+  
+  .donut-container {
+    flex-direction: column !important;
+    height: auto !important;
+    gap: 15px !important;
+  }
+  .donut-container > div:first-child {
+    width: 100% !important;
+    height: 250px !important; /* Slightly smaller donut to give room to legends */
+    flex: none !important;
+  }
+  .donut-container > div:last-child {
+    width: 100% !important;
+    flex: none !important;
+    max-height: 280px !important; /* Much more room for legends */
+    padding-right: 10px !important;
+    overflow-y: auto !important;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px !important;
+  }
+}
 
 .loading-container {
   display: flex;
@@ -792,12 +814,34 @@ body {
   .sidebar.open { transform: translate3d(0, 0, 0); }
 
   /* Page header stacks vertically, title can shrink */
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
   .page-header > div:first-child { flex: none; }
+
+  /* Restore smooth scrolling and stable flip */
+  .flip-card, .flip-card-inner, .chart-card {
+    touch-action: pan-y !important;
+  }
+
+  .flip-card {
+    height: 550px !important;
+    margin-bottom: 0;
+  }
+
+  .flip-card.full-width {
+    height: 420px !important;
+  }
+
+  .charts-grid {
+    gap: 15px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .chart-card {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 16px !important;
+    padding-bottom: 25px !important;
+    height: 100% !important;
+  }
   .page-header h1 { font-size: 1.35rem; }
 
   /* Controls stack vertically, each child is full width */
@@ -807,6 +851,11 @@ body {
     gap: 8px;
   }
   .page-controls > * { width: 100%; box-sizing: border-box; }
+
+  /* Allow page scrolling when swiping over charts */
+  canvas {
+    touch-action: pan-y !important;
+  }
 
   /* Search takes full width */
   .global-search-wrapper {
@@ -909,9 +958,46 @@ body {
   background: #94a3b8;
 }
 
-/* Ensure scrollable areas respond to mouse wheel correctly */
-[style*="overflow-y: auto"] {
-  overscroll-behavior-y: contain;
+/* Allow page scrolling when swiping over charts */
+canvas {
+  touch-action: pan-y !important;
 }
 
 
+
+/* Premium Security Button Styles */
+.btn-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  font-family: inherit;
+}
+
+.btn-security:hover {
+  background: var(--primary-600) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25) !important;
+  color: #fff !important;
+}
+
+.btn-security:active {
+  transform: translateY(0);
+}
+
+.btn-security:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

@@ -286,7 +286,7 @@ const Dashboard = () => {
         </ChartCard>
 
         <ChartCard title={`Salesperson ${metricLabel}`} aiContext={data.salespersons} aiType="Salesperson Performance">
-          <div style={{ display: 'flex', alignItems: 'center', height: '300px', gap: '20px' }}>
+          <div className="donut-container">
             <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
               <Doughnut 
                 data={spChartData} 

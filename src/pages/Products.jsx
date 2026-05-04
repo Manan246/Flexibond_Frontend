@@ -181,7 +181,7 @@ const Products = () => {
       )}
 
       <div className="kpi-grid">
-        <KPICard title="Top Product" value={topProduct ? topProduct._id.substring(0, 20) : 'N/A'} icon={<FiBox />} color="blue" />
+        <KPICard title={sortOrder === -1 ? "Top Product" : "Bottom Product"} value={topProduct ? topProduct._id.substring(0, 20) : 'N/A'} icon={<FiBox />} color="blue" />
         <KPICard title="Unique Products" value={formatNumber(totalProducts)} icon={<FiGrid />} color="green" />
         <KPICard title="Categories" value={formatNumber(totalCategories)} icon={<FiLayers />} color="orange" />
         <KPICard title="Colour Variants" value={formatNumber(totalColours)} icon={<FiDroplet />} color="red" />
@@ -239,7 +239,7 @@ const Products = () => {
         </ChartCard>
 
         <ChartCard title="Category Breakdown" aiContext={data.categories} aiType="Product Categories">
-          <div style={{ display: 'flex', alignItems: 'center', height: '320px', gap: '20px' }}>
+          <div className="donut-container">
             <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
               <Doughnut
                 data={catChartData}

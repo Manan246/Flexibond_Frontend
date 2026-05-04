@@ -262,7 +262,7 @@ const Salesperson = () => {
                 </ChartCard>
 
                 <ChartCard title="Category Breakdown" aiContext={details.categoryBreakdown} aiType={`Category Performance for ${selectedSP}`}>
-                  <div style={{ display: 'flex', alignItems: 'center', height: '300px', gap: '20px' }}>
+                  <div className="donut-container">
                     <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
                       <Doughnut 
                         data={{
@@ -291,13 +291,13 @@ const Salesperson = () => {
                         }}
                       />
                     </div>
-                    <div className="custom-legend" onWheel={(e) => e.stopPropagation()} style={{ flex: '0 0 150px', maxHeight: '100%', overflowY: 'auto', paddingRight: '10px' }}>
+                    <div className="custom-legend" onWheel={(e) => e.stopPropagation()} style={{ flex: '0 0 150px', maxHeight: '100%', overflowY: 'auto', paddingRight: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {details.categoryBreakdown.map((item, idx) => {
                         const total = details.categoryBreakdown.reduce((sum, c) => sum + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
                         const percentage = ((metric === 'revenue' ? item.totalAmount : item.totalQty) / total * 100).toFixed(1);
                         const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
                         return (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                               <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors[idx % colors.length], flexShrink: 0 }} />
                               <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item._id}</span>

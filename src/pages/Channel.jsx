@@ -237,7 +237,7 @@ const Channel = () => {
       {/* Revenue Share + Trend */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
         <ChartCard title="Revenue Channel Split" aiContext={summary} aiType="B2B vs B2C Revenue Share">
-          <div style={{ display: 'flex', alignItems: 'center', height: '240px', gap: '20px' }}>
+          <div className="donut-container">
             <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
               <Doughnut data={doughnutData} options={{
                 maintainAspectRatio: false,
