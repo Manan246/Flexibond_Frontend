@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiHome, FiUploadCloud, FiUsers, FiLogOut, FiBox, FiBarChart2, FiDollarSign, FiGitBranch } from 'react-icons/fi';
+import { FiHome, FiUploadCloud, FiUsers, FiLogOut, FiBox, FiBarChart2, FiDollarSign, FiGitBranch, FiMap } from 'react-icons/fi';
 import NotificationPanel from './NotificationPanel';
 import './Sidebar.css';
 
@@ -40,10 +40,16 @@ const Sidebar = ({ isOpen, onClose, user: propUser }) => {
           </NavLink>
         )}
         {(isAdmin || permissions.includes('salesperson')) && (
-          <NavLink to="/salesperson" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <FiUsers className="nav-icon" />
-            <span>Salesperson</span>
-          </NavLink>
+          <>
+            <NavLink to="/salesperson" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <FiUsers className="nav-icon" />
+              <span>Salesperson</span>
+            </NavLink>
+            <NavLink to="/geographic" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <FiMap className="nav-icon" />
+              <span>Geographic</span>
+            </NavLink>
+          </>
         )}
         {(isAdmin || permissions.includes('comparison')) && (
           <NavLink to="/comparison" onClick={onClose} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>

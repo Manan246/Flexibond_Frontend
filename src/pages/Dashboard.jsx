@@ -51,7 +51,7 @@ const Dashboard = () => {
         getTopProducts({ ...filters, limit: 10, sortBy: metric === 'revenue' ? 'totalAmount' : 'totalQty' }),
         getTopCustomers({ ...filters, limit: 20, sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
         getGeographic({ ...filters, groupBy: 'state', sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
-        getSalespersonList({ sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
+        getSalespersonList({ ...filters, sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' }),
         getFilters()
       ]);
 

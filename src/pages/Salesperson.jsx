@@ -94,10 +94,9 @@ const Salesperson = () => {
         </div>
         <div className="page-controls">
           <GlobalSearch onSearchSelect={(res) => {
+            setFilters(prev => ({ ...prev, ...res }));
             if (res.salesperson) {
               setSelectedSP(res.salesperson);
-            } else {
-              setFilters(prev => ({ ...prev, ...res }));
             }
           }} />
           <ExportControls pageTitle="Salesperson_Performance" />

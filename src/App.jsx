@@ -10,8 +10,9 @@ import NotificationPanel from './components/NotificationPanel';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
-import Salesperson from './pages/Salesperson';
 import Products from './pages/Products';
+import Salesperson from './pages/Salesperson';
+import Geographic from './pages/Geographic';
 import Comparison from './pages/Comparison';
 import AdminPanel from './pages/AdminPanel';
 import LogsPanel from './pages/LogsPanel';
@@ -128,6 +129,7 @@ const App = () => {
           <Route path="/dashboard" element={<ProtectedView permission="overview"><Dashboard /></ProtectedView>} />
           <Route path="/products" element={<ProtectedView permission="products"><Products /></ProtectedView>} />
           <Route path="/salesperson" element={<ProtectedView permission="salesperson"><Salesperson /></ProtectedView>} />
+          <Route path="/geographic" element={<ProtectedView permission="salesperson"><Geographic /></ProtectedView>} />
           <Route path="/comparison" element={<ProtectedView permission="comparison"><Comparison /></ProtectedView>} />
           <Route path="/upload" element={<ProtectedView permission="upload"><Upload /></ProtectedView>} />
           <Route path="/financial" element={<ProtectedView permission="financials"><Financial /></ProtectedView>} />

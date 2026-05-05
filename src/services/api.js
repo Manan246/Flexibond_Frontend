@@ -192,6 +192,7 @@ export const getFilters = () => api.get('dashboard/filters');
 
 // Salesperson
 export const getSalespersonList = (params) => api.get('salesperson/list', { params });
+export const getGeoAnalytics = (params) => api.get('salesperson/geo-analytics', { params });
 export const getSalespersonPerformance = (name, params) =>
   api.get(`salesperson/${encodeURIComponent(name)}/performance`, { params });
 export const getSalespersonComparison = (params) => api.get('salesperson/compare/all', { params });
