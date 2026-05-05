@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { FiBox, FiLayers, FiGrid, FiDroplet, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import KPICard from '../components/KPICard';
@@ -17,6 +18,7 @@ import {
 } from '../services/api';
 
 const Products = () => {
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [metric, setMetric] = useState('revenue');
@@ -60,6 +62,15 @@ const Products = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Pick up filters from navigation state (Global Search redirection)
+    if (location.state?.filters) {
+      setFilters(prev => ({ ...prev, ...location.state.filters }));
+      // Clear state so it doesn't re-apply on every render
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => { fetchData(); }, [filters, metric, sortOrder]);
 
@@ -238,7 +249,7 @@ const Products = () => {
           />
         </ChartCard>
 
-        <ChartCard title="Category Breakdown" aiContext={data.categories} aiType="Product Categories">
+        <ChartCard title={filters.category ? `Products in ${filters.category}` : "Category Breakdown"} aiContext={data.categories} aiType="Product Categories">
           <div className="donut-container">
             <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
               <Doughnut
@@ -263,34 +274,24 @@ const Products = () => {
                 }}
               />
             </div>
-            <div 
-              style={{ 
-                flex: '0 0 240px', 
-                maxHeight: '100%', 
-                overflowY: 'auto', 
-                paddingRight: '12px',
-                fontSize: '0.8rem',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-                msOverflowStyle: 'thin',
-                scrollbarWidth: 'thin'
-              }}
-              onWheel={(e) => e.stopPropagation()}
-            >
+            <div className="custom-legend">
               {data.categories?.map((cat, i) => {
                 const val = metric === 'revenue' ? cat.totalAmount : cat.totalQty;
                 const total = data.categories.reduce((acc, c) => acc + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
                 const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                const color = catChartData.datasets[0].backgroundColor[i % catChartData.datasets[0].backgroundColor.length];
+                const colors = [
+                  '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe',
+                  '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe',
+                  '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'
+                ];
+                const color = colors[i % colors.length];
                 return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--border-color)', borderBottomStyle: 'dashed' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, flexShrink: 0 }} />
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500 }}>{cat._id || 'Unknown'}</span>
+                  <div key={i} className="legend-item">
+                    <div className="legend-label">
+                      <div className="legend-dot" style={{ background: color }} />
+                      <span>{cat._id || 'Unknown'}</span>
                     </div>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', marginLeft: '8px' }}>{pct}%</span>
+                    <span className="legend-percentage">{pct}%</span>
                   </div>
                 );
               })}

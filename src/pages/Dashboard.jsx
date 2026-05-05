@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import { FiDollarSign, FiShoppingCart, FiUsers, FiPackage, FiTrendingUp } from 'react-icons/fi';
 import KPICard from '../components/KPICard';
@@ -19,6 +20,7 @@ import {
 } from '../services/api';
 
 const Dashboard = () => {
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -68,6 +70,15 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Pick up filters from navigation state (Global Search redirection)
+    if (location.state?.filters) {
+      setFilters(prev => ({ ...prev, ...location.state.filters }));
+      // Clear state so it doesn't re-apply on every render
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetchData();
@@ -309,34 +320,19 @@ const Dashboard = () => {
                 }} 
               />
             </div>
-            <div 
-              style={{ 
-                flex: '0 0 200px', 
-                maxHeight: '100%', 
-                overflowY: 'auto', 
-                paddingRight: '10px',
-                fontSize: '0.85rem',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                msOverflowStyle: 'thin',
-                scrollbarWidth: 'thin'
-              }}
-              onWheel={(e) => e.stopPropagation()}
-            >
+            <div className="custom-legend">
               {spChartData.labels.map((label, i) => {
                 const val = spChartData.datasets[0].data[i];
                 const total = spChartData.datasets[0].data.reduce((a, b) => a + b, 0);
                 const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
                 const color = spChartData.datasets[0].backgroundColor[i % spChartData.datasets[0].backgroundColor.length];
                 return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                      <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: color, flexShrink: 0 }} />
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                  <div key={i} className="legend-item">
+                    <div className="legend-label">
+                      <div className="legend-dot" style={{ background: color }} />
+                      <span>{label}</span>
                     </div>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{pct}%</span>
+                    <span className="legend-percentage">{pct}%</span>
                   </div>
                 );
               })}

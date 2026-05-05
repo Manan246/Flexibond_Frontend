@@ -580,9 +580,65 @@ body.is-exporting .flip-card.is-flipped .flip-card-back {
   gap: 20px;
 }
 
+.custom-legend {
+  flex: 0 0 180px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0 10px 0 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.legend-item:hover {
+  background: var(--bg-light);
+}
+
+.legend-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-label span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legend-percentage {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-left: 8px;
+}
+
 @media (max-width: 600px) {
   .flip-card {
-    height: 580px !important; /* Taller card for more legends */
+    height: 580px !important;
   }
   
   .donut-container {
@@ -592,13 +648,13 @@ body.is-exporting .flip-card.is-flipped .flip-card-back {
   }
   .donut-container > div:first-child {
     width: 100% !important;
-    height: 250px !important; /* Slightly smaller donut to give room to legends */
+    height: 250px !important;
     flex: none !important;
   }
-  .donut-container > div:last-child {
+  .custom-legend {
     width: 100% !important;
     flex: none !important;
-    max-height: 280px !important; /* Much more room for legends */
+    max-height: 280px !important;
     padding-right: 10px !important;
     overflow-y: auto !important;
     border-top: 1px solid var(--border-color);
@@ -711,7 +767,9 @@ body.is-exporting .flip-card.is-flipped .flip-card-back {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 140px);
+  max-height: calc(100vh - 100px);
+  position: sticky;
+  top: 100px;
 }
 .sp-list-scroll-area {
   overflow-y: auto;
@@ -720,9 +778,7 @@ body.is-exporting .flip-card.is-flipped .flip-card-back {
 }
 
 .salesperson-details-container {
-  overflow-y: auto;
-  height: calc(100vh - 140px);
-  padding-right: 10px;
+  min-height: 100%;
 }
 
 @media (max-width: 992px) {

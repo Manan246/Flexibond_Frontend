@@ -1,5 +1,6 @@
 import axios from 'axios';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { toast } from 'react-toastify';
 
 // --- Device Fingerprinting ---
 let deviceId = localStorage.getItem('flexibond_device_id') || null;
@@ -56,11 +57,9 @@ const isLAN = window.location.hostname.startsWith('192.168.') ||
               window.location.hostname.startsWith('172.') ||
               window.location.hostname.endsWith('.local');
 
-const API_BASE = isLocalhost 
-  ? 'http://localhost:5000/api' 
-  : isLAN 
-    ? `http://${window.location.hostname}:5000/api`
-    : 'https://flexibond-backend-vkc0.onrender.com/api';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || isLAN
+  ? `http://${window.location.hostname}:8080/api`
+  : 'https://flexibond-backend-vkc0.onrender.com/api').replace(/\/$/, '') + '/';
 
 export const API_BASE_URL = API_BASE;
 
@@ -149,79 +148,79 @@ export const login = (username, password, nickname) => {
     deviceName = `${os} (${browser}) [${nickname}]`;
   }
 
-  return api.post('/auth/login', { username, password }, {
+  return api.post('auth/login', { username, password }, {
     headers: { 'x-device-name': deviceName }
   });
 };
-export const verify2FA = (token, tempToken) => api.post('/auth/verify-2fa', { token, tempToken });
-export const getProfile = () => api.get('/auth/me');
+export const verify2FA = (token, tempToken) => api.post('auth/verify-2fa', { token, tempToken });
+export const getProfile = () => api.get('auth/me');
 
 // 2FA Management
-export const setup2FA = () => api.post('/auth/2fa/setup');
-export const activate2FA = (token) => api.post('/auth/2fa/activate', { token });
-export const disable2FA = () => api.post('/auth/2fa/disable');
+export const setup2FA = () => api.post('auth/2fa/setup');
+export const activate2FA = (token) => api.post('auth/2fa/activate', { token });
+export const disable2FA = () => api.post('auth/2fa/disable');
 
 // Device Management
-export const getAllDevices = () => api.get('/auth/devices');
-export const getPendingDevices = () => api.get('/auth/devices/pending');
-export const approveDevice = (id) => api.post(`/auth/devices/${id}/approve`);
-export const revokeDevice = (id) => api.delete(`/auth/devices/${id}`);
+export const getAllDevices = () => api.get('auth/devices');
+export const getPendingDevices = () => api.get('auth/devices/pending');
+export const approveDevice = (id) => api.post(`auth/devices/${id}/approve`);
+export const revokeDevice = (id) => api.delete(`auth/devices/${id}`);
 
 // Upload
 export const uploadFile = (file, onProgress, sessionId) => {
   const formData = new FormData();
   formData.append('file', file);
-  return api.post(`/upload${sessionId ? `?sessionId=${sessionId}` : ''}`, formData, {
+  return api.post(`upload${sessionId ? `?sessionId=${sessionId}` : ''}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: onProgress,
   });
 };
-export const getUploadHistory = () => api.get('/upload/history');
-export const deleteUpload = (uploadId) => api.delete(`/upload/${uploadId}`);
-export const purgeAllData = (type) => api.delete(`/upload/purge/${type}`);
+export const getUploadHistory = () => api.get('upload/history');
+export const deleteUpload = (uploadId) => api.delete(`upload/${uploadId}`);
+export const purgeAllData = (type) => api.delete(`upload/purge/${type}`);
 
 // Dashboard
-export const getDashboardSummary = (params) => api.get('/dashboard/summary', { params });
-export const getRevenueTrend = (params) => api.get('/dashboard/revenue-trend', { params });
-export const getTopProducts = (params) => api.get('/dashboard/top-products', { params });
-export const getTopCustomers = (params) => api.get('/dashboard/top-customers', { params });
-export const getCategoryBreakdown = (params) => api.get('/dashboard/category-breakdown', { params });
-export const getGeographic = (params) => api.get('/dashboard/geographic', { params });
-export const getColourAnalysis = (params) => api.get('/dashboard/colour-analysis', { params });
-export const getSizeAnalysis = (params) => api.get('/dashboard/size-analysis', { params });
-export const getFilters = () => api.get('/dashboard/filters');
+export const getDashboardSummary = (params) => api.get('dashboard/summary', { params });
+export const getRevenueTrend = (params) => api.get('dashboard/revenue-trend', { params });
+export const getTopProducts = (params) => api.get('dashboard/top-products', { params });
+export const getTopCustomers = (params) => api.get('dashboard/top-customers', { params });
+export const getCategoryBreakdown = (params) => api.get('dashboard/category-breakdown', { params });
+export const getGeographic = (params) => api.get('dashboard/geographic', { params });
+export const getColourAnalysis = (params) => api.get('dashboard/colour-analysis', { params });
+export const getSizeAnalysis = (params) => api.get('dashboard/size-analysis', { params });
+export const getFilters = () => api.get('dashboard/filters');
 
 // Salesperson
-export const getSalespersonList = (params) => api.get('/salesperson/list', { params });
+export const getSalespersonList = (params) => api.get('salesperson/list', { params });
 export const getSalespersonPerformance = (name, params) =>
-  api.get(`/salesperson/${encodeURIComponent(name)}/performance`, { params });
-export const getSalespersonComparison = (params) => api.get('/salesperson/compare/all', { params });
+  api.get(`salesperson/${encodeURIComponent(name)}/performance`, { params });
+export const getSalespersonComparison = (params) => api.get('salesperson/compare/all', { params });
 
 // Channel (B2B vs B2C)
-export const getChannelSummary = (params) => api.get('/channel/summary', { params });
-export const getChannelTrend = (params) => api.get('/channel/trend', { params });
-export const getChannelTopCustomers = (params) => api.get('/channel/top-customers', { params });
-export const getChannelStateBreakdown = (params) => api.get('/channel/state-breakdown', { params });
-export const getChannelProductBreakdown = (params) => api.get('/channel/product-breakdown', { params });
-export const getChannelCategoryBreakdown = (params) => api.get('/channel/category-breakdown', { params });
+export const getChannelSummary = (params) => api.get('channel/summary', { params });
+export const getChannelTrend = (params) => api.get('channel/trend', { params });
+export const getChannelTopCustomers = (params) => api.get('channel/top-customers', { params });
+export const getChannelStateBreakdown = (params) => api.get('channel/state-breakdown', { params });
+export const getChannelProductBreakdown = (params) => api.get('channel/product-breakdown', { params });
+export const getChannelCategoryBreakdown = (params) => api.get('channel/category-breakdown', { params });
 
 // Financials
-export const getFinancialSummary = (params) => api.get('/financials/summary', { params });
-export const getFinancialTaxTrend = (params) => api.get('/financials/tax-trend', { params });
-export const getFinancialStateWiseTax = (params) => api.get('/financials/state-wise-tax', { params });
-export const getFinancialGSTTypeSplit = (params) => api.get('/financials/gst-type-split', { params });
-export const getFinancialInvoices = (params) => api.get('/financials/invoices', { params });
-export const getFinancialFilters = () => api.get('/financials/filters');
+export const getFinancialSummary = (params) => api.get('financials/summary', { params });
+export const getFinancialTaxTrend = (params) => api.get('financials/tax-trend', { params });
+export const getFinancialStateWiseTax = (params) => api.get('financials/state-wise-tax', { params });
+export const getFinancialGSTTypeSplit = (params) => api.get('financials/gst-type-split', { params });
+export const getFinancialInvoices = (params) => api.get('financials/invoices', { params });
+export const getFinancialFilters = () => api.get('financials/filters');
 
 // AI Insights
-export const getAIInsights = (context, contextType) => api.post('/ai/insights', { context, contextType });
+export const getAIInsights = (context, contextType) => api.post('ai/insights', { context, contextType });
 
 // User Management & Logs (Admin Only)
-export const adminGetUsers = () => api.get('/auth/users');
-export const adminCreateUser = (userData) => api.post('/auth/users', userData);
-export const adminUpdateUser = (userId, userData) => api.put(`/auth/users/${userId}`, userData);
-export const adminDeleteUser = (userId) => api.delete(`/auth/users/${userId}`);
-export const adminReset2FA = (userId) => api.post(`/auth/users/${userId}/disable-2fa`);
-export const adminGetLogs = () => api.get('/auth/logs');
+export const adminGetUsers = () => api.get('auth/users');
+export const adminCreateUser = (userData) => api.post('auth/users', userData);
+export const adminUpdateUser = (userId, userData) => api.put(`auth/users/${userId}`, userData);
+export const adminDeleteUser = (userId) => api.delete(`auth/users/${userId}`);
+export const adminReset2FA = (userId) => api.post(`auth/users/${userId}/disable-2fa`);
+export const adminGetLogs = () => api.get('auth/logs');
 
 export default api;

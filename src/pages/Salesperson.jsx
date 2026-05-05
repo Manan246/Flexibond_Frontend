@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getSalespersonList, getSalespersonPerformance } from '../services/api';
+import { useNavigate } from 'react-router-dom';
+import FilterBar from '../components/FilterBar';
+import { getSalespersonList, getSalespersonPerformance, getFilters } from '../services/api';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import ChartCard from '../components/ChartCard';
 import { FiUsers, FiDollarSign, FiShoppingCart, FiMapPin, FiTrendingUp } from 'react-icons/fi';
@@ -9,6 +11,7 @@ import GlobalSearch from '../components/GlobalSearch';
 import NotificationPanel from '../components/NotificationPanel';
 
 const Salesperson = () => {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [list, setList] = useState([]);
   const [selectedSP, setSelectedSP] = useState(null);
@@ -17,21 +20,39 @@ const Salesperson = () => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [metric, setMetric] = useState('revenue');
   const [trendGroupBy, setTrendGroupBy] = useState('day');
+  const [filters, setFilters] = useState({
+    startDate: '', endDate: '', category: '', state: '',
+    product: '', thickness: '', dimensions: '', city: ''
+  });
+  const [filterOptions, setFilterOptions] = useState({});
 
   useEffect(() => {
     fetchList();
-  }, [metric]);
+    fetchOptions();
+  }, [metric, filters]);
 
   useEffect(() => {
     if (selectedSP) {
       handleSelectSP(selectedSP);
     }
-  }, [trendGroupBy]);
+  }, [trendGroupBy, filters]);
+
+  const fetchOptions = async () => {
+    try {
+      const res = await getFilters();
+      setFilterOptions(res.data.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchList = async () => {
     try {
       setLoading(true);
-      const res = await getSalespersonList({ sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' });
+      const res = await getSalespersonList({ 
+        ...filters,
+        sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' 
+      });
       setList(res.data.data);
       if (res.data.data.length > 0) {
         handleSelectSP(res.data.data[0]._id);
@@ -48,6 +69,7 @@ const Salesperson = () => {
       setSelectedSP(name);
       setDetailsLoading(true);
       const res = await getSalespersonPerformance(name, { 
+        ...filters,
         sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty',
         groupBy: trendGroupBy 
       });
@@ -75,7 +97,7 @@ const Salesperson = () => {
             if (res.salesperson) {
               setSelectedSP(res.salesperson);
             } else {
-              alert('Please select a salesperson on this page. For other search criteria, use the Overview tab.');
+              setFilters(prev => ({ ...prev, ...res }));
             }
           }} />
           <ExportControls pageTitle="Salesperson_Performance" />
@@ -95,6 +117,22 @@ const Salesperson = () => {
           </div>
         </div>
       </div>
+
+      <FilterBar 
+        filters={filters} 
+        options={filterOptions} 
+        onFilterChange={(newFilters, clear) => {
+          if (clear) {
+            setFilters({
+              startDate: '', endDate: '', category: '', state: '',
+              product: '', thickness: '', dimensions: '', city: ''
+            });
+          } else {
+            setFilters(prev => ({ ...prev, ...newFilters }));
+          }
+        }} 
+        hideSalesperson={true}
+      />
 
       <div className="salesperson-layout">
         {/* Left Sidebar - List */}
@@ -261,7 +299,7 @@ const Salesperson = () => {
                   />
                 </ChartCard>
 
-                <ChartCard title="Category Breakdown" aiContext={details.categoryBreakdown} aiType={`Category Performance for ${selectedSP}`}>
+                <ChartCard title={filters.category ? `Products in ${filters.category}` : "Category Breakdown"} aiContext={details.categoryBreakdown} aiType={`Category Performance for ${selectedSP}`}>
                   <div className="donut-container">
                     <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
                       <Doughnut 
@@ -291,18 +329,18 @@ const Salesperson = () => {
                         }}
                       />
                     </div>
-                    <div className="custom-legend" onWheel={(e) => e.stopPropagation()} style={{ flex: '0 0 150px', maxHeight: '100%', overflowY: 'auto', paddingRight: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div className="custom-legend">
                       {details.categoryBreakdown.map((item, idx) => {
                         const total = details.categoryBreakdown.reduce((sum, c) => sum + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
                         const percentage = ((metric === 'revenue' ? item.totalAmount : item.totalQty) / total * 100).toFixed(1);
                         const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
                         return (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors[idx % colors.length], flexShrink: 0 }} />
-                              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item._id}</span>
+                          <div key={idx} className="legend-item">
+                            <div className="legend-label">
+                              <div className="legend-dot" style={{ backgroundColor: colors[idx % colors.length] }} />
+                              <span>{item._id}</span>
                             </div>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)', marginLeft: '8px' }}>{percentage}%</span>
+                            <span className="legend-percentage">{percentage}%</span>
                           </div>
                         );
                       })}

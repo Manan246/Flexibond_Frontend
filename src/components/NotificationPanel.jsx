@@ -35,7 +35,7 @@ const NotificationPanel = ({ isDark = false }) => {
     fetchRecentLogs();
     const interval = setInterval(fetchRecentLogs, 30000);
     return () => clearInterval(interval);
-  }, [logs]);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event) {

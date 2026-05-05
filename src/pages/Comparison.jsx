@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bar, Line } from 'react-chartjs-2';
 import { FiUserCheck, FiUsers, FiSearch } from 'react-icons/fi';
 import ChartCard from '../components/ChartCard';
@@ -6,11 +7,13 @@ import AIInsightButton from '../components/AIInsightButton';
 import ExportControls from '../components/ExportControls';
 import GlobalSearch from '../components/GlobalSearch';
 import NotificationPanel from '../components/NotificationPanel';
-import { getSalespersonList, getSalespersonComparison, getSalespersonPerformance } from '../services/api';
+import FilterBar from '../components/FilterBar';
+import { getSalespersonList, getSalespersonComparison, getSalespersonPerformance, getFilters } from '../services/api';
 
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
 
 const Comparison = () => {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [loading, setLoading] = useState(true);
   const [allSP, setAllSP] = useState([]);
@@ -20,14 +23,29 @@ const Comparison = () => {
   const [metric, setMetric] = useState('revenue');
   const [trendGroupBy, setTrendGroupBy] = useState('day');
   const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    startDate: '', endDate: '', category: '', state: '',
+    product: '', thickness: '', dimensions: '', city: ''
+  });
+  const [filterOptions, setFilterOptions] = useState({});
 
   useEffect(() => {
     fetchSPList();
-  }, []);
+    fetchOptions();
+  }, [filters]);
+
+  const fetchOptions = async () => {
+    try {
+      const res = await getFilters();
+      setFilterOptions(res.data.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchSPList = async () => {
     try {
-      const res = await getSalespersonList();
+      const res = await getSalespersonList(filters);
       const list = res.data.data;
       setAllSP(list);
       // Auto-select top 3
@@ -44,13 +62,13 @@ const Comparison = () => {
     if (selected.length > 0) {
       fetchComparison();
     }
-  }, [selected, trendGroupBy]);
+  }, [selected, trendGroupBy, filters]);
 
   const fetchComparison = async () => {
     try {
       const [compRes, ...detailsRes] = await Promise.all([
-        getSalespersonComparison({ groupBy: trendGroupBy }),
-        ...selected.map(name => getSalespersonPerformance(name).catch(() => null))
+        getSalespersonComparison({ ...filters, groupBy: trendGroupBy }),
+        ...selected.map(name => getSalespersonPerformance(name, filters).catch(() => null))
       ]);
 
       setComparisonData(compRes.data.data.filter(d => selected.includes(d._id)));
@@ -180,7 +198,7 @@ const Comparison = () => {
                 setSelected([...selected, res.salesperson]);
               }
             } else {
-              alert('Please select a salesperson on this page.');
+              setFilters(prev => ({ ...prev, ...res }));
             }
           }} />
           <ExportControls pageTitle="Salesperson_Comparison" />
@@ -192,6 +210,22 @@ const Comparison = () => {
           </div>
         </div>
       </div>
+
+      <FilterBar 
+        filters={filters} 
+        options={filterOptions} 
+        onFilterChange={(newFilters, clear) => {
+          if (clear) {
+            setFilters({
+              startDate: '', endDate: '', category: '', state: '',
+              product: '', thickness: '', dimensions: '', city: ''
+            });
+          } else {
+            setFilters(prev => ({ ...prev, ...newFilters }));
+          }
+        }} 
+        hideSalesperson={true}
+      />
 
       {/* AI Insight — above selector, shown only when salespersons are selected */}
       {selected.length > 0 && (
