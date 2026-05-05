@@ -10,6 +10,22 @@ import ExportControls from '../components/ExportControls';
 import GlobalSearch from '../components/GlobalSearch';
 import NotificationPanel from '../components/NotificationPanel';
 
+import { KPISkeleton, ChartSkeleton, TableSkeleton, Skeleton } from '../components/Skeleton';
+
+const SalespersonListSkeleton = () => (
+  <div className="sp-list-scroll-area">
+    {[1, 2, 3, 4, 5, 6].map(i => (
+      <div key={i} style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', marginBottom: '12px' }}>
+        <Skeleton style={{ height: '24px', width: '60%', marginBottom: '12px' }} />
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <Skeleton style={{ height: '16px', width: '40%' }} />
+          <Skeleton style={{ height: '16px', width: '30%' }} />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const Salesperson = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
@@ -54,7 +70,7 @@ const Salesperson = () => {
         sortBy: metric === 'revenue' ? 'totalRevenue' : 'totalQty' 
       });
       setList(res.data.data);
-      if (res.data.data.length > 0) {
+      if (res.data.data.length > 0 && !selectedSP) {
         handleSelectSP(res.data.data[0]._id);
       }
     } catch (err) {
@@ -82,8 +98,6 @@ const Salesperson = () => {
   };
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
-
-  if (loading) return <div className="loading-container"><div className="spinner"></div><p>Loading Salesperson Analytics...</p></div>;
 
   return (
     <div className="page-content">
@@ -139,45 +153,57 @@ const Salesperson = () => {
           <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-light)' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Leaderboard</h3>
           </div>
-          <div className="sp-list-scroll-area">
-            {list.map((sp, idx) => (
-              <div 
-                key={sp._id} 
-                className={`sp-card ${selectedSP === sp._id ? 'active' : ''}`}
-                onClick={() => handleSelectSP(sp._id)}
-                style={{ marginBottom: '12px' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
-                  <div className={`rank-badge ${idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : 'default'}`}>
-                    {idx + 1}
+          {loading ? (
+            <SalespersonListSkeleton />
+          ) : (
+            <div className="sp-list-scroll-area">
+              {list.map((sp, idx) => (
+                <div 
+                  key={sp._id} 
+                  className={`sp-card ${selectedSP === sp._id ? 'active' : ''}`}
+                  onClick={() => handleSelectSP(sp._id)}
+                  style={{ marginBottom: '12px' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                    <div className={`rank-badge ${idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : 'default'}`}>
+                      {idx + 1}
+                    </div>
+                    <div className="sp-name" style={{ margin: 0, flex: 1 }}>{sp._id}</div>
                   </div>
-                  <div className="sp-name" style={{ margin: 0, flex: 1 }}>{sp._id}</div>
+                  <div className="sp-stats">
+                    <div>
+                      <div className="sp-stat-label">Revenue</div>
+                      <div className="sp-stat-value" style={{ color: 'var(--primary-600)' }}>{formatCurrency(sp.totalRevenue)}</div>
+                    </div>
+                    <div>
+                      <div className="sp-stat-label">Orders</div>
+                      <div className="sp-stat-value">{sp.totalOrders}</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="sp-stats">
-                  <div>
-                    <div className="sp-stat-label">Revenue</div>
-                    <div className="sp-stat-value" style={{ color: 'var(--primary-600)' }}>{formatCurrency(sp.totalRevenue)}</div>
-                  </div>
-                  <div>
-                    <div className="sp-stat-label">Orders</div>
-                    <div className="sp-stat-value">{sp.totalOrders}</div>
-                  </div>
+              ))}
+              {list.length === 0 && (
+                <div className="no-data">
+                  <FiUsers className="no-data-icon" />
+                  <p>No salespersons found</p>
                 </div>
-              </div>
-            ))}
-            {list.length === 0 && (
-              <div className="no-data">
-                <FiUsers className="no-data-icon" />
-                <p>No salespersons found</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Content - Details */}
         <div className="salesperson-details-container">
           {detailsLoading ? (
-             <div className="loading-container" style={{ minHeight: '400px' }}><div className="spinner"></div></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <Skeleton style={{ height: '60px', width: '100%' }} />
+              <KPISkeleton />
+              <ChartSkeleton fullWidth />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <ChartSkeleton />
+                <ChartSkeleton />
+              </div>
+            </div>
           ) : details ? (
             <>
               {/* Top Stats */}

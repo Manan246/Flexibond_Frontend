@@ -19,6 +19,8 @@ import {
   getFilters
 } from '../services/api';
 
+import { KPISkeleton, ChartSkeleton, TableSkeleton } from '../components/Skeleton';
+
 const Dashboard = () => {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
@@ -98,15 +100,6 @@ const Dashboard = () => {
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
   const formatNumber = (val) => new Intl.NumberFormat('en-IN').format(val || 0);
   const metricLabel = metric === 'revenue' ? 'Revenue' : 'Quantity';
-
-  if (loading && !data.summary) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading Dashboard...</p>
-      </div>
-    );
-  }
 
   // Chart Configs
   const trendChartData = {
@@ -195,7 +188,9 @@ const Dashboard = () => {
         </div>
       )}
 
-      {data.summary && (
+      {loading && !data.summary ? (
+        <KPISkeleton />
+      ) : data.summary && (
         <div className="kpi-grid">
           <KPICard
             title="Total Revenue"
@@ -231,162 +226,181 @@ const Dashboard = () => {
       )}
 
       <div className="charts-grid">
-        <ChartCard 
-          title={`${metricLabel} Trend`} 
-          aiContext={data.trend}
-          aiType="Revenue Trend Data"
-          fullWidth 
-          extra={
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                onClick={() => setTrendGroupBy('day')} 
-                style={{
-                  padding: '6px 12px',
-                  fontSize: '0.85rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: trendGroupBy === 'day' ? 'var(--primary-600)' : 'var(--bg-card)',
-                  color: trendGroupBy === 'day' ? '#fff' : 'var(--text-primary)',
-                  cursor: 'pointer',
-                  fontWeight: 500
-                }}
-              >
-                Days
-              </button>
-              <button 
-                onClick={() => setTrendGroupBy('month')} 
-                style={{
-                  padding: '6px 12px',
-                  fontSize: '0.85rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
-                  backgroundColor: trendGroupBy === 'month' ? 'var(--primary-600)' : 'var(--bg-card)',
-                  color: trendGroupBy === 'month' ? '#fff' : 'var(--text-primary)',
-                  cursor: 'pointer',
-                  fontWeight: 500
-                }}
-              >
-                Months
-              </button>
-            </div>
-          }
-        >
-          <Line data={trendChartData} options={{ maintainAspectRatio: false }} />
-        </ChartCard>
+        {loading && !data.trend ? (
+          <ChartSkeleton fullWidth />
+        ) : (
+          <ChartCard 
+            title={`${metricLabel} Trend`} 
+            aiContext={data.trend}
+            aiType="Revenue Trend Data"
+            fullWidth 
+            extra={
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={() => setTrendGroupBy('day')} 
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.85rem',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: trendGroupBy === 'day' ? 'var(--primary-600)' : 'var(--bg-card)',
+                    color: trendGroupBy === 'day' ? '#fff' : 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  Days
+                </button>
+                <button 
+                  onClick={() => setTrendGroupBy('month')} 
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.85rem',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: trendGroupBy === 'month' ? 'var(--primary-600)' : 'var(--bg-card)',
+                    color: trendGroupBy === 'month' ? '#fff' : 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  Months
+                </button>
+              </div>
+            }
+          >
+            <Line data={trendChartData} options={{ maintainAspectRatio: false }} />
+          </ChartCard>
+        )}
         
-        <ChartCard title={`Top Products (${metricLabel})`} aiContext={data.products} aiType="Top Products Comparison">
-          <Bar 
-            data={productsChartData} 
-            options={{ 
-              maintainAspectRatio: false,
-              indexAxis: 'y', 
-              plugins: { legend: { display: false } },
-              scales: {
-                y: {
-                  ticks: {
-                    callback: function(value) {
-                      const label = this.getLabelForValue(value);
-                      return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
-                    },
-                    font: { size: 10 }
+        {loading && !data.products ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={`Top Products (${metricLabel})`} aiContext={data.products} aiType="Top Products Comparison">
+            <Bar 
+              data={productsChartData} 
+              options={{ 
+                maintainAspectRatio: false,
+                indexAxis: 'y', 
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: {
+                    ticks: {
+                      callback: function(value) {
+                        const label = this.getLabelForValue(value);
+                        return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
+                      },
+                      font: { size: 10 }
+                    }
                   }
                 }
-              }
-            }} 
-          />
-        </ChartCard>
+              }} 
+            />
+          </ChartCard>
+        )}
 
-        <ChartCard title={`Salesperson ${metricLabel}`} aiContext={data.salespersons} aiType="Salesperson Performance">
-          <div className="donut-container">
-            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
-              <Doughnut 
-                data={spChartData} 
-                options={{ 
-                  maintainAspectRatio: false,
-                  cutout: '70%',
-                  plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                      callbacks: {
-                        label: (ctx) => {
-                          const val = ctx.raw || 0;
-                          const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                          const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                          return ` ${ctx.label}: ${metric === 'revenue' ? formatCurrency(val) : formatNumber(val)} (${pct}%)`;
+        {loading && !data.salespersons ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={`Salesperson ${metricLabel}`} aiContext={data.salespersons} aiType="Salesperson Performance">
+            <div className="donut-container">
+              <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+                <Doughnut 
+                  data={spChartData} 
+                  options={{ 
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const val = ctx.raw || 0;
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${metric === 'revenue' ? formatCurrency(val) : formatNumber(val)} (${pct}%)`;
+                          }
                         }
                       }
                     }
-                  }
-                }} 
-              />
-            </div>
-            <div className="custom-legend">
-              {spChartData.labels.map((label, i) => {
-                const val = spChartData.datasets[0].data[i];
-                const total = spChartData.datasets[0].data.reduce((a, b) => a + b, 0);
-                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                const color = spChartData.datasets[0].backgroundColor[i % spChartData.datasets[0].backgroundColor.length];
-                return (
-                  <div key={i} className="legend-item">
-                    <div className="legend-label">
-                      <div className="legend-dot" style={{ background: color }} />
-                      <span>{label}</span>
+                  }} 
+                />
+              </div>
+              <div className="custom-legend">
+                {(spChartData.labels || []).map((label, i) => {
+                  const val = spChartData.datasets[0].data[i];
+                  const total = spChartData.datasets[0].data.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                  const color = spChartData.datasets[0].backgroundColor[i % spChartData.datasets[0].backgroundColor.length];
+                  return (
+                    <div key={i} className="legend-item">
+                      <div className="legend-label">
+                        <div className="legend-dot" style={{ background: color }} />
+                        <span>{label}</span>
+                      </div>
+                      <span className="legend-percentage">{pct}%</span>
                     </div>
-                    <span className="legend-percentage">{pct}%</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            </div>
+          </ChartCard>
+        )}
+
+        {loading && !data.geo ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={`${metricLabel} by State`} aiContext={data.geo} aiType="Geographic Breakdown">
+            <Bar 
+              data={geoChartData} 
+              options={{ 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+              }} 
+            />
+          </ChartCard>
+        )}
+
+        {loading && !data.customers ? (
+          <TableSkeleton />
+        ) : (
+          <div className="data-table-wrapper" style={{ gridColumn: '1 / -1' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Top Customers</h3>
+            </div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <table className="data-table">
+                <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg-card)' }}>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>City</th>
+                    <th>State</th>
+                    <th>Salesperson</th>
+                    <th>Orders</th>
+                    <th>{metricLabel}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.customers?.map((cust, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 500 }}>{cust._id}</td>
+                      <td>{cust.city}</td>
+                      <td>{cust.state}</td>
+                      <td>{cust.salesperson}</td>
+                      <td>{cust.totalOrders}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        {metric === 'revenue' ? formatCurrency(cust.totalRevenue) : formatNumber(cust.totalQty)}
+                      </td>
+                    </tr>
+                  ))}
+                  {(!data.customers || data.customers.length === 0) && (
+                    <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>No customer data available</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
-        </ChartCard>
-
-        <ChartCard title={`${metricLabel} by State`} aiContext={data.geo} aiType="Geographic Breakdown">
-          <Bar 
-            data={geoChartData} 
-            options={{ 
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } }
-            }} 
-          />
-        </ChartCard>
-
-        {/* Top Customers Table - Scrollable */}
-        <div className="data-table-wrapper" style={{ gridColumn: '1 / -1' }}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Top Customers</h3>
-          </div>
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table className="data-table">
-              <thead style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg-card)' }}>
-                <tr>
-                  <th>Customer Name</th>
-                  <th>City</th>
-                  <th>State</th>
-                  <th>Salesperson</th>
-                  <th>Orders</th>
-                  <th>{metricLabel}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.customers?.map((cust, i) => (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 500 }}>{cust._id}</td>
-                    <td>{cust.city}</td>
-                    <td>{cust.state}</td>
-                    <td>{cust.salesperson}</td>
-                    <td>{cust.totalOrders}</td>
-                    <td style={{ fontWeight: 600 }}>
-                      {metric === 'revenue' ? formatCurrency(cust.totalRevenue) : formatNumber(cust.totalQty)}
-                    </td>
-                  </tr>
-                ))}
-                {(!data.customers || data.customers.length === 0) && (
-                  <tr><td colSpan="6" style={{ textAlign: 'center', padding: '30px' }}>No customer data available</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { uploadFile, getUploadHistory, deleteUpload, purgeAllData, API_BASE_URL } from '../services/api';
 import NotificationPanel from '../components/NotificationPanel';
 
+import { TableSkeleton } from '../components/Skeleton';
+
 const Upload = () => {
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const isAdmin = user.role === 'admin';
@@ -362,8 +364,8 @@ const Upload = () => {
           )}
         </div>
         
-        {loadingHistory ? (
-          <p style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>Loading history trace...</p>
+        {loadingHistory && history.length === 0 ? (
+          <TableSkeleton />
         ) : history.length === 0 ? (
           <p style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)' }}>No previous uploads recorded.</p>
         ) : (

@@ -12,6 +12,8 @@ import { getSalespersonList, getSalespersonComparison, getSalespersonPerformance
 
 const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'];
 
+import { KPISkeleton, ChartSkeleton, TableSkeleton, Skeleton } from '../components/Skeleton';
+
 const Comparison = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
@@ -45,12 +47,15 @@ const Comparison = () => {
 
   const fetchSPList = async () => {
     try {
+      setLoading(true);
       const res = await getSalespersonList(filters);
       const list = res.data.data;
       setAllSP(list);
       // Auto-select top 3
-      const top = list.slice(0, 3).map(s => s._id);
-      setSelected(top);
+      if (selected.length === 0) {
+        const top = list.slice(0, 3).map(s => s._id);
+        setSelected(top);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -96,15 +101,6 @@ const Comparison = () => {
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
   const formatNumber = (val) => new Intl.NumberFormat('en-IN').format(val || 0);
   const metricLabel = metric === 'revenue' ? 'Revenue' : 'Quantity';
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading Comparison...</p>
-      </div>
-    );
-  }
 
   const filteredSP = allSP.filter(s => s._id.toLowerCase().includes(search.toLowerCase()));
 
@@ -237,7 +233,6 @@ const Comparison = () => {
         />
       )}
 
-      {/* Salesperson Selector */}
       <div className="data-table-wrapper" style={{ marginBottom: '20px' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>
@@ -256,29 +251,33 @@ const Comparison = () => {
           </div>
         </div>
         <div style={{ padding: '12px 20px', display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '120px', overflowY: 'auto' }}>
-          {filteredSP.map((sp, i) => {
-            const isSelected = selected.includes(sp._id);
-            const colorIdx = selected.indexOf(sp._id);
-            return (
-              <button
-                key={i}
-                onClick={() => toggleSP(sp._id)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  border: isSelected ? `2px solid ${COLORS[colorIdx % COLORS.length]}` : '1px solid var(--border-color)',
-                  background: isSelected ? `${COLORS[colorIdx % COLORS.length]}15` : 'var(--bg-card)',
-                  color: isSelected ? COLORS[colorIdx % COLORS.length] : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontWeight: isSelected ? 600 : 400,
-                  fontSize: '0.8rem',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {sp._id}
-              </button>
-            );
-          })}
+          {loading && allSP.length === 0 ? (
+            [1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} style={{ width: '100px', height: '32px', borderRadius: '20px' }} />)
+          ) : (
+            filteredSP.map((sp, i) => {
+              const isSelected = selected.includes(sp._id);
+              const colorIdx = selected.indexOf(sp._id);
+              return (
+                <button
+                  key={i}
+                  onClick={() => toggleSP(sp._id)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    border: isSelected ? `2px solid ${COLORS[colorIdx % COLORS.length]}` : '1px solid var(--border-color)',
+                    background: isSelected ? `${COLORS[colorIdx % COLORS.length]}15` : 'var(--bg-card)',
+                    color: isSelected ? COLORS[colorIdx % COLORS.length] : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontWeight: isSelected ? 600 : 400,
+                    fontSize: '0.8rem',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {sp._id}
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -328,84 +327,95 @@ const Comparison = () => {
           </div>
 
           <div className="charts-grid">
-            <ChartCard title={`${metricLabel} Comparison`} aiContext={comparisonData} aiType="Salesperson Performance Comparison">
-              <Bar
-                data={revenueCompData}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: { legend: { display: false } }
-                }}
-              />
-            </ChartCard>
-
-            <ChartCard 
-              title={`${metricLabel} Trend`}
-              aiContext={comparisonData}
-              aiType="Salesperson Performance Trends"
-              extra={
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button 
-                    onClick={() => setTrendGroupBy('day')} 
-                    style={{
-                      padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px',
-                      border: '1px solid var(--border-color)',
-                      backgroundColor: trendGroupBy === 'day' ? 'var(--primary-600)' : 'var(--bg-card)',
-                      color: trendGroupBy === 'day' ? '#fff' : 'var(--text-primary)',
-                      cursor: 'pointer', fontWeight: 500
+            {comparisonData.length === 0 ? (
+              <>
+                <ChartSkeleton />
+                <ChartSkeleton />
+                <ChartSkeleton fullWidth />
+                <ChartSkeleton fullWidth />
+              </>
+            ) : (
+              <>
+                <ChartCard title={`${metricLabel} Comparison`} aiContext={comparisonData} aiType="Salesperson Performance Comparison">
+                  <Bar
+                    data={revenueCompData}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: { legend: { display: false } }
                     }}
-                  >Days</button>
-                  <button 
-                    onClick={() => setTrendGroupBy('month')} 
-                    style={{
-                      padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px',
-                      border: '1px solid var(--border-color)',
-                      backgroundColor: trendGroupBy === 'month' ? 'var(--primary-600)' : 'var(--bg-card)',
-                      color: trendGroupBy === 'month' ? '#fff' : 'var(--text-primary)',
-                      cursor: 'pointer', fontWeight: 500
-                    }}
-                  >Months</button>
-                </div>
-              }
-            >
-              <Line
-                data={trendCompData}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
-                }}
-              />
-            </ChartCard>
+                  />
+                </ChartCard>
 
-            <ChartCard title={`Top Products by ${metricLabel}`} aiContext={spDetails} aiType="Top Products Comparison Across Salespersons" fullWidth>
-              <Bar
-                data={productCompData}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-                  scales: {
-                    x: {
-                      ticks: {
-                        callback: function(value) {
-                          const label = this.getLabelForValue(value);
-                          return label && label.length > 14 ? label.substring(0, 12) + '...' : label;
-                        },
-                        font: { size: 9 }
-                      }
-                    }
+                <ChartCard 
+                  title={`${metricLabel} Trend`}
+                  aiContext={comparisonData}
+                  aiType="Salesperson Performance Trends"
+                  extra={
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        onClick={() => setTrendGroupBy('day')} 
+                        style={{
+                          padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px',
+                          border: '1px solid var(--border-color)',
+                          backgroundColor: trendGroupBy === 'day' ? 'var(--primary-600)' : 'var(--bg-card)',
+                          color: trendGroupBy === 'day' ? '#fff' : 'var(--text-primary)',
+                          cursor: 'pointer', fontWeight: 500
+                        }}
+                      >Days</button>
+                      <button 
+                        onClick={() => setTrendGroupBy('month')} 
+                        style={{
+                          padding: '6px 12px', fontSize: '0.85rem', borderRadius: '6px',
+                          border: '1px solid var(--border-color)',
+                          backgroundColor: trendGroupBy === 'month' ? 'var(--primary-600)' : 'var(--bg-card)',
+                          color: trendGroupBy === 'month' ? '#fff' : 'var(--text-primary)',
+                          cursor: 'pointer', fontWeight: 500
+                        }}
+                      >Months</button>
+                    </div>
                   }
-                }}
-              />
-            </ChartCard>
+                >
+                  <Line
+                    data={trendCompData}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+                    }}
+                  />
+                </ChartCard>
 
-            <ChartCard title={`City-wise ${metricLabel}`} aiContext={spDetails} aiType="City Sales Breakdown Across Salespersons" fullWidth>
-              <Bar
-                data={cityCompData}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
-                }}
-              />
-            </ChartCard>
+                <ChartCard title={`Top Products by ${metricLabel}`} aiContext={spDetails} aiType="Top Products Comparison Across Salespersons" fullWidth>
+                  <Bar
+                    data={productCompData}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+                      scales: {
+                        x: {
+                          ticks: {
+                            callback: function(value) {
+                              const label = this.getLabelForValue(value);
+                              return label && label.length > 14 ? label.substring(0, 12) + '...' : label;
+                            },
+                            font: { size: 9 }
+                          }
+                        }
+                      }
+                    }}
+                  />
+                </ChartCard>
+
+                <ChartCard title={`City-wise ${metricLabel}`} aiContext={spDetails} aiType="City Sales Breakdown Across Salespersons" fullWidth>
+                  <Bar
+                    data={cityCompData}
+                    options={{
+                      maintainAspectRatio: false,
+                      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+                    }}
+                  />
+                </ChartCard>
+              </>
+            )}
           </div>
         </>
       )}

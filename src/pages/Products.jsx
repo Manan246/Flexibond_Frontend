@@ -17,6 +17,8 @@ import {
   getFilters
 } from '../services/api';
 
+import { KPISkeleton, ChartSkeleton, TableSkeleton } from '../components/Skeleton';
+
 const Products = () => {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
@@ -88,15 +90,6 @@ const Products = () => {
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val || 0);
   const formatNumber = (val) => new Intl.NumberFormat('en-IN').format(val || 0);
   const metricLabel = metric === 'revenue' ? 'Revenue' : 'Quantity';
-
-  if (loading && !data.products) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading Product Analytics...</p>
-      </div>
-    );
-  }
 
   // KPI summaries
   const totalProducts = data.products?.length || 0;
@@ -191,187 +184,214 @@ const Products = () => {
         </div>
       )}
 
-      <div className="kpi-grid">
-        <KPICard title={sortOrder === -1 ? "Top Product" : "Bottom Product"} value={topProduct ? topProduct._id.substring(0, 20) : 'N/A'} icon={<FiBox />} color="blue" />
-        <KPICard title="Unique Products" value={formatNumber(totalProducts)} icon={<FiGrid />} color="green" />
-        <KPICard title="Categories" value={formatNumber(totalCategories)} icon={<FiLayers />} color="orange" />
-        <KPICard title="Colour Variants" value={formatNumber(totalColours)} icon={<FiDroplet />} color="red" />
-      </div>
+      {loading && !data.products ? (
+        <KPISkeleton />
+      ) : (
+        <div className="kpi-grid">
+          <KPICard title={sortOrder === -1 ? "Top Product" : "Bottom Product"} value={topProduct ? topProduct._id.substring(0, 20) : 'N/A'} icon={<FiBox />} color="blue" />
+          <KPICard title="Unique Products" value={formatNumber(totalProducts)} icon={<FiGrid />} color="green" />
+          <KPICard title="Categories" value={formatNumber(totalCategories)} icon={<FiLayers />} color="orange" />
+          <KPICard title="Colour Variants" value={formatNumber(totalColours)} icon={<FiDroplet />} color="red" />
+        </div>
+      )}
 
       <div className="charts-grid">
-        <ChartCard 
-          title={`${sortOrder === -1 ? 'Top' : 'Bottom'} Products (${metricLabel})`} 
-          aiContext={data.products} 
-          aiType={`${sortOrder === -1 ? 'Top' : 'Bottom'} Products`} 
-          fullWidth
-          extra={
-            <button 
-              onClick={() => setSortOrder(sortOrder === -1 ? 1 : -1)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: '1px solid var(--border-color)',
-                background: '#fff',
-                color: sortOrder === -1 ? 'var(--primary-600)' : '#f59e0b',
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {sortOrder === -1 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
-              {sortOrder === -1 ? 'Top 15' : 'Bottom 15'}
-            </button>
-          }
-        >
-          <Bar
-            data={productsChartData}
-            options={{
-              maintainAspectRatio: false,
-              indexAxis: 'y',
-              plugins: { legend: { display: false } },
-              scales: {
-                y: {
-                  ticks: {
-                    callback: function(value) {
-                      const label = this.getLabelForValue(value);
-                      return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
-                    },
-                    font: { size: 10 }
+        {loading && !data.products ? (
+          <ChartSkeleton fullWidth />
+        ) : (
+          <ChartCard 
+            title={`${sortOrder === -1 ? 'Top' : 'Bottom'} Products (${metricLabel})`} 
+            aiContext={data.products} 
+            aiType={`${sortOrder === -1 ? 'Top' : 'Bottom'} Products`} 
+            fullWidth
+            extra={
+              <button 
+                onClick={() => setSortOrder(sortOrder === -1 ? 1 : -1)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: '#fff',
+                  color: sortOrder === -1 ? 'var(--primary-600)' : '#f59e0b',
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {sortOrder === -1 ? <FiArrowUp size={14} /> : <FiArrowDown size={14} />}
+                {sortOrder === -1 ? 'Top 15' : 'Bottom 15'}
+              </button>
+            }
+          >
+            <Bar
+              data={productsChartData}
+              options={{
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: {
+                    ticks: {
+                      callback: function(value) {
+                        const label = this.getLabelForValue(value);
+                        return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
+                      },
+                      font: { size: 10 }
+                    }
                   }
                 }
-              }
-            }}
-          />
-        </ChartCard>
+              }}
+            />
+          </ChartCard>
+        )}
 
-        <ChartCard title={filters.category ? `Products in ${filters.category}` : "Category Breakdown"} aiContext={data.categories} aiType="Product Categories">
-          <div className="donut-container">
-            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
-              <Doughnut
-                data={catChartData}
-                options={{
-                  maintainAspectRatio: false,
-                  cutout: '70%',
-                  plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                      callbacks: {
-                        label: (context) => {
-                          const label = context.label || '';
-                          const value = context.raw || 0;
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                          return ` ${label}: ${metric === 'revenue' ? formatCurrency(value) : formatNumber(value)} (${percentage}%)`;
+        {loading && !data.categories ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={filters.category ? `Products in ${filters.category}` : "Category Breakdown"} aiContext={data.categories} aiType="Product Categories">
+            <div className="donut-container">
+              <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+                <Doughnut
+                  data={catChartData}
+                  options={{
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return ` ${label}: ${metric === 'revenue' ? formatCurrency(value) : formatNumber(value)} (${percentage}%)`;
+                          }
                         }
                       }
                     }
-                  }
-                }}
-              />
-            </div>
-            <div className="custom-legend">
-              {data.categories?.map((cat, i) => {
-                const val = metric === 'revenue' ? cat.totalAmount : cat.totalQty;
-                const total = data.categories.reduce((acc, c) => acc + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
-                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                const colors = [
-                  '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe',
-                  '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe',
-                  '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'
-                ];
-                const color = colors[i % colors.length];
-                return (
-                  <div key={i} className="legend-item">
-                    <div className="legend-label">
-                      <div className="legend-dot" style={{ background: color }} />
-                      <span>{cat._id || 'Unknown'}</span>
+                  }}
+                />
+              </div>
+              <div className="custom-legend">
+                {(data.categories || []).map((cat, i) => {
+                  const val = metric === 'revenue' ? cat.totalAmount : cat.totalQty;
+                  const total = (data.categories || []).reduce((acc, c) => acc + (metric === 'revenue' ? c.totalAmount : c.totalQty), 0);
+                  const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                  const colors = [
+                    '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe',
+                    '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe',
+                    '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'
+                  ];
+                  const color = colors[i % colors.length];
+                  return (
+                    <div key={i} className="legend-item">
+                      <div className="legend-label">
+                        <div className="legend-dot" style={{ background: color }} />
+                        <span>{cat._id || 'Unknown'}</span>
+                      </div>
+                      <span className="legend-percentage">{pct}%</span>
                     </div>
-                    <span className="legend-percentage">{pct}%</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </ChartCard>
+          </ChartCard>
+        )}
 
-        <ChartCard title={`Colour Breakdown (${metricLabel})`} aiContext={data.colours} aiType="Color Variants Breakdown">
-          <Bar
-            data={coloursChartData}
-            options={{
-              maintainAspectRatio: false,
-              indexAxis: 'y',
-              plugins: { legend: { display: false } }
-            }}
-          />
-        </ChartCard>
+        {loading && !data.colours ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={`Colour Breakdown (${metricLabel})`} aiContext={data.colours} aiType="Color Variants Breakdown">
+            <Bar
+              data={coloursChartData}
+              options={{
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } }
+              }}
+            />
+          </ChartCard>
+        )}
 
-        <ChartCard title={`Thickness Preference (${metricLabel})`} aiContext={data.thickness} aiType="Thickness Analysis">
-          <Bar
-            data={thicknessChartData}
-            options={{
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } }
-            }}
-          />
-        </ChartCard>
+        {loading && !data.thickness ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={`Thickness Preference (${metricLabel})`} aiContext={data.thickness} aiType="Thickness Analysis">
+            <Bar
+              data={thicknessChartData}
+              options={{
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+              }}
+            />
+          </ChartCard>
+        )}
 
-        <ChartCard title={`Dimensions Preference (${metricLabel})`} aiContext={data.dimensions} aiType="Size Dimensions Preference">
-          <Bar
-            data={dimensionsChartData}
-            options={{
-              maintainAspectRatio: false,
-              indexAxis: 'y',
-              plugins: { legend: { display: false } },
-              scales: {
-                y: {
-                  ticks: {
-                    callback: function(value) {
-                      const label = this.getLabelForValue(value);
-                      return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
-                    },
-                    font: { size: 10 }
+        {loading && !data.dimensions ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title={`Dimensions Preference (${metricLabel})`} aiContext={data.dimensions} aiType="Size Dimensions Preference">
+            <Bar
+              data={dimensionsChartData}
+              options={{
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: {
+                    ticks: {
+                      callback: function(value) {
+                        const label = this.getLabelForValue(value);
+                        return label && label.length > 18 ? label.substring(0, 16) + '...' : label;
+                      },
+                      font: { size: 10 }
+                    }
                   }
                 }
-              }
-            }}
-          />
-        </ChartCard>
+              }}
+            />
+          </ChartCard>
+        )}
 
-        {/* Products Table */}
-        <div className="data-table-wrapper" style={{ gridColumn: '1 / -1' }}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>All Products</h3>
-          </div>
-          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table className="data-table">
-              <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                <tr>
-                  <th>Product Name</th>
-                  <th>Category</th>
-                  <th>Quantity</th>
-                  <th>Revenue</th>
-                  <th>Avg Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.products?.map((p, i) => (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 500 }}>{p._id}</td>
-                    <td>{p.categoryCode || '—'}</td>
-                    <td>{formatNumber(p.totalQty)}</td>
-                    <td style={{ fontWeight: 600, color: 'var(--primary-600)' }}>{formatCurrency(p.totalAmount)}</td>
-                    <td>{formatCurrency(p.avgRate)}</td>
+        {loading && !data.products ? (
+          <TableSkeleton />
+        ) : (
+          <div className="data-table-wrapper" style={{ gridColumn: '1 / -1' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-color)' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>All Products</h3>
+            </div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <table className="data-table">
+                <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Revenue</th>
+                    <th>Avg Rate</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.products?.map((p, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 500 }}>{p._id}</td>
+                      <td>{p.categoryCode || '—'}</td>
+                      <td>{formatNumber(p.totalQty)}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--primary-600)' }}>{formatCurrency(p.totalAmount)}</td>
+                      <td>{formatCurrency(p.avgRate)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

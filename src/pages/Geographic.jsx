@@ -14,6 +14,8 @@ const INDIA_ZOOM = 4;
 // GeoJSON URL for India States - High reliability source
 const INDIA_GEOJSON_URL = 'https://raw.githubusercontent.com/HindustanTimesLabs/shapefiles/master/india/states/india_states.json';
 
+import { Skeleton } from '../components/Skeleton';
+
 const Geographic = () => {
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
   const [salespersons, setSalespersons] = useState([]);
@@ -37,10 +39,11 @@ const Geographic = () => {
   useEffect(() => {
     const fetchList = async () => {
       try {
+        setLoading(true);
         const res = await getSalespersonList({ sortBy: 'totalRevenue' });
         setSalespersons(res.data.data);
         // Default select top 2
-        if (res.data.data.length > 0) {
+        if (res.data.data.length > 0 && selectedNames.length === 0) {
           const defaults = res.data.data.slice(0, 2).map(s => s._id);
           setSelectedNames(defaults);
         }
@@ -161,8 +164,6 @@ const Geographic = () => {
     );
   };
 
-  if (loading) return <div className="loading-container"><div className="spinner"></div><p>Loading Geographic Intelligence...</p></div>;
-
   return (
     <div className="page-content">
       <div className="page-header">
@@ -225,21 +226,27 @@ const Geographic = () => {
           </div>
         </div>
         <div className="selection-chips">
-          {filteredSP.map(sp => (
-            <button 
-              key={sp._id}
-              className={`selection-chip ${selectedNames.includes(sp._id) ? 'active' : ''}`}
-              onClick={() => toggleSelection(sp._id)}
-            >
-              {sp._id}
-            </button>
-          ))}
+          {loading && salespersons.length === 0 ? (
+            [1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} style={{ width: '80px', height: '32px', borderRadius: '20px' }} />)
+          ) : (
+            filteredSP.map(sp => (
+              <button 
+                key={sp._id}
+                className={`selection-chip ${selectedNames.includes(sp._id) ? 'active' : ''}`}
+                onClick={() => toggleSelection(sp._id)}
+              >
+                {sp._id}
+              </button>
+            ))
+          )}
         </div>
       </div>
 
       {/* Maps Area Below */}
       <div className="geo-main">
-        {selectedNames.length === 0 ? (
+        {loading && selectedNames.length === 0 ? (
+          <Skeleton className="skeleton-chart" style={{ height: '100%' }} />
+        ) : selectedNames.length === 0 ? (
           <div className="no-selection-placeholder">
             <FiMap className="placeholder-icon" />
             <h2>No Salesperson Selected</h2>
@@ -257,20 +264,22 @@ const Geographic = () => {
                   </div>
                 </div>
                 <div className="map-container-wrapper">
-                  <MapContainer center={INDIA_CENTER} zoom={INDIA_ZOOM} style={{ height: '100%', width: '100%' }}>
-                    {mapType === 'normal' ? (
-                      <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                      />
-                    ) : (
-                      <TileLayer
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                        attribution='&copy; Esri'
-                      />
-                    )}
-                    
-                    {indiaGeoJSON && (
+                  {!indiaGeoJSON ? (
+                    <Skeleton style={{ height: '100%', width: '100%' }} />
+                  ) : (
+                    <MapContainer center={INDIA_CENTER} zoom={INDIA_ZOOM} style={{ height: '100%', width: '100%' }}>
+                      {mapType === 'normal' ? (
+                        <TileLayer
+                          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                        />
+                      ) : (
+                        <TileLayer
+                          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                          attribution='&copy; Esri'
+                        />
+                      )}
+                      
                       <GeoJSON 
                         key={`${name}-${metric}-${mapType}-${geoData[name]?.length}`}
                         data={indiaGeoJSON} 
@@ -310,8 +319,8 @@ const Geographic = () => {
                           }
                         }}
                       />
-                    )}
-                  </MapContainer>
+                    </MapContainer>
+                  )}
                   <MapLegend data={geoData[name]} />
                 </div>
               </div>

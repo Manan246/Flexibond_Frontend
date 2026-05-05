@@ -13,6 +13,8 @@ import {
 const B2B_COLOR = '#2563eb';
 const B2C_COLOR = '#10b981';
 
+import { KPISkeleton, ChartSkeleton, TableSkeleton, Skeleton } from '../components/Skeleton';
+
 const Channel = () => {
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
 
@@ -126,12 +128,7 @@ const Channel = () => {
   const chartYTicks = { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } };
 
   if (loading && !summary) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading Channel Analytics...</p>
-      </div>
-    );
+    return <LoadingScreen message="Analyzing Channel Dynamics" />;
   }
 
   return (
@@ -170,7 +167,12 @@ const Channel = () => {
       )}
 
       {/* Channel Overview Cards */}
-      {summary && (
+      {loading && !summary ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+          <Skeleton style={{ height: '240px', borderRadius: 'var(--radius-md)' }} />
+          <Skeleton style={{ height: '240px', borderRadius: 'var(--radius-md)' }} />
+        </div>
+      ) : summary && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
           {/* B2B Card */}
           <div style={{ background: 'var(--bg-card)', border: `2px solid ${B2B_COLOR}`, borderRadius: 'var(--radius-md)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
@@ -234,96 +236,111 @@ const Channel = () => {
         </div>
       )}
 
-      {/* Revenue Share + Trend */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
-        <ChartCard title="Revenue Channel Split" aiContext={summary} aiType="B2B vs B2C Revenue Share">
-          <div className="donut-container">
-            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
-              <Doughnut data={doughnutData} options={{
-                maintainAspectRatio: false,
-                cutout: '60%',
-                plugins: {
-                  legend: { display: false },
-                  tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
-                }
-              }} />
-            </div>
-            <div 
-              style={{ 
-                flex: '0 0 160px', 
-                fontSize: '0.9rem',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                overflowY: 'auto',
-                maxHeight: '100%',
-                msOverflowStyle: 'thin',
-                scrollbarWidth: 'thin'
-              }}
-              onWheel={(e) => e.stopPropagation()}
-            >
-              {doughnutData.labels.map((label, i) => {
-                const val = doughnutData.datasets[0].data[i];
-                const total = doughnutData.datasets[0].data.reduce((a, b) => a + b, 0);
-                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: doughnutData.datasets[0].backgroundColor[i] }} />
-                      <span style={{ fontWeight: 500 }}>{label.split(' ')[0]}</span>
+        {loading && !summary ? (
+          <ChartSkeleton />
+        ) : summary && (
+          <ChartCard title="Revenue Channel Split" aiContext={summary} aiType="B2B vs B2C Revenue Share">
+            <div className="donut-container">
+              <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+                <Doughnut data={doughnutData} options={{
+                  maintainAspectRatio: false,
+                  cutout: '60%',
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+                  }
+                }} />
+              </div>
+              <div 
+                style={{ 
+                  flex: '0 0 160px', 
+                  fontSize: '0.9rem',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  overflowY: 'auto',
+                  maxHeight: '100%',
+                  msOverflowStyle: 'thin',
+                  scrollbarWidth: 'thin'
+                }}
+                onWheel={(e) => e.stopPropagation()}
+              >
+                {doughnutData.labels.map((label, i) => {
+                  const val = doughnutData.datasets[0].data[i];
+                  const total = doughnutData.datasets[0].data.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: doughnutData.datasets[0].backgroundColor[i] }} />
+                        <span style={{ fontWeight: 500 }}>{label.split(' ')[0]}</span>
+                      </div>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{pct}%</span>
                     </div>
-                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{pct}%</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </ChartCard>
+          </ChartCard>
+        )}
 
-        <ChartCard
-          title="Revenue Trend by Channel"
-          aiContext={trend}
-          aiType="B2B vs B2C Revenue Trend Over Time"
-          extra={
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {['month', 'day'].map(g => (
-                <button key={g} onClick={() => setTrendGroupBy(g)} style={{
-                  padding: '5px 12px', fontSize: '0.8rem', borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
-                  background: trendGroupBy === g ? 'var(--primary-600)' : 'var(--bg-card)',
-                  color: trendGroupBy === g ? '#fff' : 'var(--text-primary)',
-                  cursor: 'pointer', fontWeight: 500
-                }}>{g === 'month' ? 'Monthly' : 'Daily'}</button>
-              ))}
-            </div>
-          }
-        >
-          <Line data={trendLineData} options={{
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-            scales: { y: chartYTicks }
-          }} />
-        </ChartCard>
+        {loading && trend.length === 0 ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard
+            title="Revenue Trend by Channel"
+            aiContext={trend}
+            aiType="B2B vs B2C Revenue Trend Over Time"
+            extra={
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['month', 'day'].map(g => (
+                  <button key={g} onClick={() => setTrendGroupBy(g)} style={{
+                    padding: '5px 12px', fontSize: '0.8rem', borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    background: trendGroupBy === g ? 'var(--primary-600)' : 'var(--bg-card)',
+                    color: trendGroupBy === g ? '#fff' : 'var(--text-primary)',
+                    cursor: 'pointer', fontWeight: 500
+                  }}>{g === 'month' ? 'Monthly' : 'Daily'}</button>
+                ))}
+              </div>
+            }
+          >
+            <Line data={trendLineData} options={{
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+              scales: { y: chartYTicks }
+            }} />
+          </ChartCard>
+        )}
       </div>
 
       {/* State Breakdown + Category Breakdown */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
-        <ChartCard title="State-wise Revenue by Channel" aiContext={stateData} aiType="State-wise B2B vs B2C Revenue Breakdown">
-          <Bar data={stateBarData} options={{
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-            scales: { y: chartYTicks, x: { ticks: { font: { size: 9 } } } }
-          }} />
-        </ChartCard>
+        {loading && stateData.length === 0 ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title="State-wise Revenue by Channel" aiContext={stateData} aiType="State-wise B2B vs B2C Revenue Breakdown">
+            <Bar data={stateBarData} options={{
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+              scales: { y: chartYTicks, x: { ticks: { font: { size: 9 } } } }
+            }} />
+          </ChartCard>
+        )}
 
-        <ChartCard title="Category Revenue by Channel" aiContext={categories} aiType="Product Category B2B vs B2C Revenue">
-          <Bar data={categoryBarData} options={{
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-            scales: { y: chartYTicks }
-          }} />
-        </ChartCard>
+        {loading && categories.length === 0 ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard title="Category Revenue by Channel" aiContext={categories} aiType="Product Category B2B vs B2C Revenue">
+            <Bar data={categoryBarData} options={{
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+              scales: { y: chartYTicks }
+            }} />
+          </ChartCard>
+        )}
       </div>
 
       {/* Top Products */}
@@ -357,34 +374,38 @@ const Channel = () => {
           </div>
         </div>
         <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '420px', WebkitOverflowScrolling: 'touch' }}>
-          <table className="data-table" style={{ minWidth: '550px' }}>
-            <thead style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg-light)' }}>
-              <tr>
-                <th style={{ whiteSpace: 'nowrap' }}>#</th>
-                <th>Customer</th>
-                <th style={{ whiteSpace: 'nowrap' }}>City</th>
-                <th style={{ whiteSpace: 'nowrap' }}>State</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Revenue</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Orders</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Qty</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(customers[custTab] || []).length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No data</td></tr>
-              ) : (customers[custTab] || []).map((c, i) => (
-                <tr key={i}>
-                  <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{i + 1}</td>
-                  <td style={{ fontWeight: 600, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c._id}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{c.city || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{c.state || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right', fontWeight: 700, color: custTab === 'b2b' ? B2B_COLOR : B2C_COLOR }}>{formatCurrency(c.revenue)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatNumber(c.orders)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatNumber(c.qty)}</td>
+          {loading && (customers[custTab] || []).length === 0 ? (
+            <TableSkeleton />
+          ) : (
+            <table className="data-table" style={{ minWidth: '550px' }}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg-light)' }}>
+                <tr>
+                  <th style={{ whiteSpace: 'nowrap' }}>#</th>
+                  <th>Customer</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>City</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>State</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Revenue</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Orders</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Qty</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(customers[custTab] || []).length === 0 ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No data</td></tr>
+                ) : (customers[custTab] || []).map((c, i) => (
+                  <tr key={i}>
+                    <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{i + 1}</td>
+                    <td style={{ fontWeight: 600, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c._id}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{c.city || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{c.state || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right', fontWeight: 700, color: custTab === 'b2b' ? B2B_COLOR : B2C_COLOR }}>{formatCurrency(c.revenue)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatNumber(c.orders)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatNumber(c.qty)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

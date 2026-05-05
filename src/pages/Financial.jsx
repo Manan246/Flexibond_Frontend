@@ -13,6 +13,8 @@ import {
 
 const COLORS = ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f59e0b'];
 
+import { KPISkeleton, ChartSkeleton, TableSkeleton } from '../components/Skeleton';
+
 const Financial = () => {
   const user = JSON.parse(localStorage.getItem('flexibond_user') || '{}');
 
@@ -197,12 +199,7 @@ const Financial = () => {
   };
 
   if (loading && !summary) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading Financials...</p>
-      </div>
-    );
+    return <LoadingScreen message="Reconciling Financial Ledgers" />;
   }
 
   return (
@@ -275,7 +272,9 @@ const Financial = () => {
       )}
 
       {/* KPI Cards */}
-      {summary && (
+      {loading && !summary ? (
+        <KPISkeleton />
+      ) : summary && (
         <div className="kpi-grid">
           <div className="kpi-card">
             <div className="kpi-icon blue"><FiDollarSign /></div>
@@ -328,131 +327,145 @@ const Financial = () => {
         </div>
       )}
 
-      {/* Charts Row 1 */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
-        <ChartCard
-          title="Tax Component Breakdown"
-          aiContext={summary}
-          aiType="Tax Component Breakdown (CGST, SGST, IGST, Cess)"
-        >
-          <div className="donut-container">
-            <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
-              <Doughnut
-                data={doughnutData}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                      callbacks: {
-                        label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}`
+        {loading && !summary ? (
+          <ChartSkeleton />
+        ) : summary && (
+          <ChartCard
+            title="Tax Component Breakdown"
+            aiContext={summary}
+            aiType="Tax Component Breakdown (CGST, SGST, IGST, Cess)"
+          >
+            <div className="donut-container">
+              <div style={{ flex: '1', minWidth: 0, height: '100%' }}>
+                <Doughnut
+                  data={doughnutData}
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.raw)}`
+                        }
                       }
-                    }
-                  },
-                  cutout: '60%'
-                }}
-              />
-            </div>
-            <div 
-              style={{ 
-                flex: '0 0 160px', 
-                fontSize: '0.9rem',
-                color: 'var(--text-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                overflowY: 'auto',
-                maxHeight: '100%',
-                msOverflowStyle: 'thin',
-                scrollbarWidth: 'thin'
-              }}
-              onWheel={(e) => e.stopPropagation()}
-            >
-              {doughnutData.labels.map((label, i) => {
-                const val = doughnutData.datasets[0].data[i];
-                const total = doughnutData.datasets[0].data.reduce((a, b) => a + b, 0);
-                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: doughnutData.datasets[0].backgroundColor[i] }} />
-                      <span style={{ fontWeight: 500 }}>{label}</span>
-                    </div>
-                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{pct}%</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </ChartCard>
-
-        <ChartCard
-          title="Tax Trend"
-          aiContext={taxTrend}
-          aiType="Monthly Tax Trend (CGST, SGST, IGST)"
-          extra={
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {['month', 'day'].map(g => (
-                <button
-                  key={g}
-                  onClick={() => setTrendGroupBy(g)}
-                  style={{
-                    padding: '5px 12px', fontSize: '0.8rem', borderRadius: '6px',
-                    border: '1px solid var(--border-color)',
-                    background: trendGroupBy === g ? 'var(--primary-600)' : 'var(--bg-card)',
-                    color: trendGroupBy === g ? '#fff' : 'var(--text-primary)',
-                    cursor: 'pointer', fontWeight: 500
+                    },
+                    cutout: '60%'
                   }}
-                >{g === 'month' ? 'Monthly' : 'Daily'}</button>
-              ))}
+                />
+              </div>
+              <div 
+                style={{ 
+                  flex: '0 0 160px', 
+                  fontSize: '0.9rem',
+                  color: 'var(--text-secondary)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  overflowY: 'auto',
+                  maxHeight: '100%',
+                  msOverflowStyle: 'thin',
+                  scrollbarWidth: 'thin'
+                }}
+                onWheel={(e) => e.stopPropagation()}
+              >
+                {doughnutData.labels.map((label, i) => {
+                  const val = doughnutData.datasets[0].data[i];
+                  const total = doughnutData.datasets[0].data.reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: doughnutData.datasets[0].backgroundColor[i] }} />
+                        <span style={{ fontWeight: 500 }}>{label}</span>
+                      </div>
+                      <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          }
-        >
-          <Line
-            data={trendLineData}
-            options={{
-              maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-              scales: { y: { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } } }
-            }}
-          />
-        </ChartCard>
+          </ChartCard>
+        )}
+
+        {loading && taxTrend.length === 0 ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard
+            title="Tax Trend"
+            aiContext={taxTrend}
+            aiType="Monthly Tax Trend (CGST, SGST, IGST)"
+            extra={
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {['month', 'day'].map(g => (
+                  <button
+                    key={g}
+                    onClick={() => setTrendGroupBy(g)}
+                    style={{
+                      padding: '5px 12px', fontSize: '0.8rem', borderRadius: '6px',
+                      border: '1px solid var(--border-color)',
+                      background: trendGroupBy === g ? 'var(--primary-600)' : 'var(--bg-card)',
+                      color: trendGroupBy === g ? '#fff' : 'var(--text-primary)',
+                      cursor: 'pointer', fontWeight: 500
+                    }}
+                  >{g === 'month' ? 'Monthly' : 'Daily'}</button>
+                ))}
+              </div>
+            }
+          >
+            <Line
+              data={trendLineData}
+              options={{
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+                scales: { y: { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } } }
+              }}
+            />
+          </ChartCard>
+        )}
       </div>
 
-      {/* Charts Row 2 */}
       <div className="charts-grid" style={{ marginBottom: '24px' }}>
-        <ChartCard
-          title="State-wise Tax Collection"
-          aiContext={stateWiseTax}
-          aiType="State-wise GST Tax Collections"
-        >
-          <Bar
-            data={stateBarData}
-            options={{
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                y: { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } },
-                x: { ticks: { font: { size: 9 } } }
-              }
-            }}
-          />
-        </ChartCard>
+        {loading && stateWiseTax.length === 0 ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard
+            title="State-wise Tax Collection"
+            aiContext={stateWiseTax}
+            aiType="State-wise GST Tax Collections"
+          >
+            <Bar
+              data={stateBarData}
+              options={{
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } },
+                  x: { ticks: { font: { size: 9 } } }
+                }
+              }}
+            />
+          </ChartCard>
+        )}
 
-        <ChartCard
-          title="GST Type Split"
-          aiContext={gstTypeSplit}
-          aiType="GST Type Split — Intra vs Inter State"
-        >
-          <Bar
-            data={gstTypeBarData}
-            options={{
-              maintainAspectRatio: false,
-              plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
-              scales: { y: { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } } }
-            }}
-          />
-        </ChartCard>
+        {loading && gstTypeSplit.length === 0 ? (
+          <ChartSkeleton />
+        ) : (
+          <ChartCard
+            title="GST Type Split"
+            aiContext={gstTypeSplit}
+            aiType="GST Type Split — Intra vs Inter State"
+          >
+            <Bar
+              data={gstTypeBarData}
+              options={{
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+                scales: { y: { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } } }
+              }}
+            />
+          </ChartCard>
+        )}
       </div>
 
       {/* Invoice Table — scrolls both ways inside its container, never affects page width */}
@@ -501,58 +514,60 @@ const Financial = () => {
           </div>
         </div>
         <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '500px', WebkitOverflowScrolling: 'touch' }}>
-          <table className="data-table" style={{ minWidth: '1100px' }}>
-            <thead style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg-light)' }}>
-              <tr>
-                <th style={{ whiteSpace: 'nowrap' }}>Date</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Invoice No</th>
-                <th style={{ whiteSpace: 'nowrap' }}>CR/DR</th>
-                <th>Customer</th>
-                <th style={{ whiteSpace: 'nowrap' }}>City</th>
-                <th style={{ whiteSpace: 'nowrap' }}>State</th>
-                <th style={{ whiteSpace: 'nowrap' }}>GST Type</th>
-                <th style={{ whiteSpace: 'nowrap' }}>Salesperson</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Assessable</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>CGST</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>SGST</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>IGST</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Cess</th>
-                <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Bill Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableLoading ? (
-                <tr><td colSpan={14} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>Loading...</td></tr>
-              ) : invoices.length === 0 ? (
-                <tr><td colSpan={14} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No invoices found</td></tr>
-              ) : invoices.map((inv, i) => (
-                <tr key={inv._id || i}>
-                  <td style={{ whiteSpace: 'nowrap' }}>{new Date(inv.date).toLocaleDateString('en-IN')}</td>
-                  <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{inv.invoiceNo}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>
-                    {inv.crDr && (
-                      <span style={{
-                        padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600,
-                        background: /cr/i.test(inv.crDr) ? 'var(--success-bg)' : 'var(--danger-bg)',
-                        color: /cr/i.test(inv.crDr) ? 'var(--success)' : 'var(--danger)'
-                      }}>{inv.crDr}</span>
-                    )}
-                  </td>
-                  <td style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.customerName}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{inv.city || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{inv.state || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>{inv.gstType || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{inv.salesperson || '—'}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatCurrency(inv.assessableAmount)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right', color: 'var(--primary-600)' }}>{formatCurrency(inv.cgst)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right', color: 'var(--success)' }}>{formatCurrency(inv.sgst)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right', color: inv.igst > 0 ? '#f97316' : 'var(--text-muted)' }}>{formatCurrency(inv.igst)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatCurrency(inv.gstCess)}</td>
-                  <td style={{ whiteSpace: 'nowrap', textAlign: 'right', fontWeight: 700 }}>{formatCurrency(inv.billAmount)}</td>
+          {tableLoading ? (
+            <TableSkeleton />
+          ) : (
+            <table className="data-table" style={{ minWidth: '1100px' }}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--bg-light)' }}>
+                <tr>
+                  <th style={{ whiteSpace: 'nowrap' }}>Date</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Invoice No</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>CR/DR</th>
+                  <th>Customer</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>City</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>State</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>GST Type</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Salesperson</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Assessable</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>CGST</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>SGST</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>IGST</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Cess</th>
+                  <th style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>Bill Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {invoices.length === 0 ? (
+                  <tr><td colSpan={14} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>No invoices found</td></tr>
+                ) : invoices.map((inv, i) => (
+                  <tr key={inv._id || i}>
+                    <td style={{ whiteSpace: 'nowrap' }}>{new Date(inv.date).toLocaleDateString('en-IN')}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{inv.invoiceNo}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {inv.crDr && (
+                        <span style={{
+                          padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600,
+                          background: /cr/i.test(inv.crDr) ? 'var(--success-bg)' : 'var(--danger-bg)',
+                          color: /cr/i.test(inv.crDr) ? 'var(--success)' : 'var(--danger)'
+                        }}>{inv.crDr}</span>
+                      )}
+                    </td>
+                    <td style={{ maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.customerName}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{inv.city || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{inv.state || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>{inv.gstType || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{inv.salesperson || '—'}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatCurrency(inv.assessableAmount)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right', color: 'var(--primary-600)' }}>{formatCurrency(inv.cgst)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right', color: 'var(--success)' }}>{formatCurrency(inv.sgst)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right', color: inv.igst > 0 ? '#f97316' : 'var(--text-muted)' }}>{formatCurrency(inv.igst)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>{formatCurrency(inv.gstCess)}</td>
+                    <td style={{ whiteSpace: 'nowrap', textAlign: 'right', fontWeight: 700 }}>{formatCurrency(inv.billAmount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
