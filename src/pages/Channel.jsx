@@ -127,9 +127,6 @@ const Channel = () => {
 
   const chartYTicks = { ticks: { callback: v => `₹${(v / 1000).toFixed(0)}K` } };
 
-  if (loading && !summary) {
-    return <LoadingScreen message="Analyzing Channel Dynamics" />;
-  }
 
   return (
     <div className="page-content">

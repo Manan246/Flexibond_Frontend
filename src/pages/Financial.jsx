@@ -198,9 +198,6 @@ const Financial = () => {
     ]
   };
 
-  if (loading && !summary) {
-    return <LoadingScreen message="Reconciling Financial Ledgers" />;
-  }
 
   return (
     <div className="page-content">
