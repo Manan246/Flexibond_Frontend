@@ -59,7 +59,7 @@ const isLAN = window.location.hostname.startsWith('192.168.') ||
 
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || isLAN
   ? `http://${window.location.hostname}:8080/api`
-  : 'https://flexibond-backend-vkc0.onrender.com/api').replace(/\/$/, '') + '/';
+  : 'https://flexibond-backend-1.onrender.com/api').replace(/\/$/, '') + '/';
 
 export const API_BASE_URL = API_BASE;
 
